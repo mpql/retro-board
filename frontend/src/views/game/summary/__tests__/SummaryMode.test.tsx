@@ -2,8 +2,8 @@ import { v4 } from 'uuid';
 import { render, getAllByRole } from '../../../../testing';
 import SummaryMode from '../SummaryMode';
 import { ColumnContent } from '../../types';
-import { Post } from '@retrospected/common';
-import { Route, MemoryRouter } from 'react-router-dom';
+import { Post } from 'common';
+import { Route, MemoryRouter, Routes } from 'react-router-dom';
 import { SnackbarProvider } from 'notistack';
 import { ThemeProvider } from '@emotion/react';
 import theme from '../../../../Theme';
@@ -13,7 +13,9 @@ const renderWithRouter = (children: React.ReactNode) =>
     <SnackbarProvider>
       <ThemeProvider theme={theme}>
         <MemoryRouter initialEntries={['/']}>
-          <Route path="/">{children}</Route>
+          <Routes>
+            <Route path="/" element={children} />
+          </Routes>
         </MemoryRouter>
       </ThemeProvider>
     </SnackbarProvider>
@@ -59,7 +61,7 @@ const data: ColumnContent[] = [
     label: 'First column',
     index: 0,
     color: 'red',
-    icon: 'satisfied',
+    icon: 'grinning',
     type: 'well',
     posts: [
       buildPost(4, 0),
@@ -74,7 +76,7 @@ const data: ColumnContent[] = [
     label: 'Second column',
     index: 1,
     color: 'green',
-    icon: 'disatisfied',
+    icon: 'unamused',
     type: 'notWell',
     posts: [],
     groups: [],

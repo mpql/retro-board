@@ -1,7 +1,8 @@
 import { colors } from '@mui/material';
 import { Info } from '@mui/icons-material';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router';
 import styled from '@emotion/styled';
+import { useTranslation } from 'react-i18next';
 
 interface HowDoesItWorkButtonProps {
   children: React.ReactElement;
@@ -12,14 +13,17 @@ export default function HowDoesItWorkButton({
   children,
   url,
 }: HowDoesItWorkButtonProps) {
-  const history = useHistory();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   return (
     <Container>
       {children}
 
       <LinkContainer>
         <Info />
-        <GoLink onClick={() => history.push(url)}>How does that work?</GoLink>
+        <GoLink onClick={() => navigate(url)}>
+          {t('Home.howDoesThatWork')}
+        </GoLink>
       </LinkContainer>
     </Container>
   );

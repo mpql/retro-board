@@ -1,4 +1,4 @@
-import { Link } from '@docusaurus/router';
+import Link from '@docusaurus/Link';
 import React from 'react';
 import Admonition from './Admonition';
 
@@ -20,7 +20,10 @@ export default function RunDetails({
       <ul>
         <li>
           Retrospected:{' '}
-          <a href={`http://localhost:${port}`}>http://localhost:{port}</a>.
+          <a href={`http://localhost${port === '80' ? '' : `:${port}`}`}>
+            http://localhost{port === '80' ? '' : `:${port}`}
+          </a>
+          .
         </li>
         <li>
           PGAdmin:{' '}

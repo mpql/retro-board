@@ -1,17 +1,11 @@
 import { useCallback } from 'react';
 import styled from '@emotion/styled';
-import {
-  Post,
-  PostGroup,
-  SessionOptions,
-  ColumnDefinition,
-} from '@retrospected/common';
+import { Post, PostGroup, SessionOptions, ColumnDefinition } from 'common';
 import {
   DragDropContext,
   DropResult,
   ResponderProvided,
 } from 'react-beautiful-dnd';
-import { getIcon } from '../../../state/icons';
 import Column from './Column';
 import { Page } from '../../../components/Page';
 import { ColumnContent } from '../types';
@@ -23,6 +17,7 @@ import {
 import { getNext, getMiddle, getPrevious } from '../lexorank';
 import BoardHeader from './header/BoardHeader';
 import useSession from '../useSession';
+import Icon from 'components/Icon/Icon';
 
 interface GameModeProps {
   columns: ColumnContent[];
@@ -150,7 +145,7 @@ function GameMode({
               posts={column.posts}
               groups={column.groups}
               question={column.label}
-              icon={getIcon(column.icon)}
+              icon={<Icon icon={column.icon} size={24} />}
               color={column.color}
               onAdd={(content) =>
                 onAddPost(
@@ -180,8 +175,7 @@ const Columns = styled.div<{ numberOfColumns: number }>`
   display: flex;
   margin-top: 30px;
 
-  @media screen and (max-width: ${(props) =>
-      props.numberOfColumns * 320 + 100}px) {
+  @media screen and (max-width: ${(props) => props.numberOfColumns * 320 + 100}px) {
     margin-top: 10px;
     flex-direction: column;
 

@@ -1,12 +1,8 @@
 import { useCallback, useMemo } from 'react';
-import {
-  SessionOptions,
-  ColumnDefinition,
-  defaultOptions,
-} from '@retrospected/common';
+import { SessionOptions, ColumnDefinition, defaultOptions } from 'common';
 import { buildDefaults, toColumnDefinitions } from '../../state/columns';
 import { ColumnSettings } from '../../state/types';
-import useTranslations from '../../translations';
+import { useTranslation } from 'react-i18next';
 import { trackEvent } from './../../track';
 import SessionEditor from '../session-editor/SessionEditor';
 
@@ -25,10 +21,10 @@ const CreateSessionModal = ({
   onClose,
   onLaunch,
 }: CreateSessionModalProps) => {
-  const translations = useTranslations();
+  const { t } = useTranslation();
   const defaultDefinitions = useMemo(() => {
-    return buildDefaults('default', translations);
-  }, [translations]);
+    return buildDefaults('default', t);
+  }, [t]);
 
   const handleChange = useCallback(
     (

@@ -6,23 +6,28 @@ import Button from '@mui/material/Button';
 import AccountIcon from '@mui/icons-material/AccountCircle';
 import useUser from './useUser';
 import LoginModal from './modal/LoginModal';
-import useTranslation from '../translations/useTranslations';
 import { logout } from '../api';
 import UserContext from './Context';
 import Avatar from '../components/Avatar';
-import { useHistory } from 'react-router-dom';
-import { Star } from '@mui/icons-material';
-import { colors } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Key, Logout, Star } from '@mui/icons-material';
+import { colors, Divider, ListItemIcon, ListItemText } from '@mui/material';
+import AccountCircle from '@mui/icons-material/AccountCircle';
+import useIsAdmin from './useIsAdmin';
+import { useTranslation } from 'react-i18next';
 
 const AccountMenu = () => {
-  const translations = useTranslation();
+  const { t } = useTranslation();
   const { setUser } = useContext(UserContext);
   const [modalOpened, setModalOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuAnchor = useRef<HTMLDivElement>(null);
-  const history = useHistory();
+  const navigate = useNavigate();
   const closeMenu = useCallback(() => setMenuOpen(false), []);
   const openMenu = useCallback(() => setMenuOpen(true), []);
+  const user = useUser();
+  const isAdmin = useIsAdmin();
+  const isNotAnon = user && user.accountType !== 'anonymous';
 
   const handleModalOpen = useCallback(
     (evt: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -43,20 +48,28 @@ const AccountMenu = () => {
   }, [setUser]);
 
   const handleAccount = useCallback(() => {
-    history.push('/account');
+    navigate('/account');
     setMenuOpen(false);
-  }, [history]);
+  }, [navigate]);
+
+  const handleAdmin = useCallback(() => {
+    navigate('/admin');
+    setMenuOpen(false);
+  }, [navigate]);
 
   const handleSubscribe = useCallback(() => {
-    history.push('/subscribe');
+    navigate('/subscribe');
     setMenuOpen(false);
-  }, [history]);
+  }, [navigate]);
 
-  const user = useUser();
   if (user) {
     return (
       <div style={{ position: 'relative' }}>
-        <AvatarContainer onClick={openMenu} ref={menuAnchor}>
+        <AvatarContainer
+          onClick={openMenu}
+          ref={menuAnchor}
+          data-cy="account-menu"
+        >
           <Avatar user={user} />
           <DisplayName>{user.name}</DisplayName>
         </AvatarContainer>
@@ -66,27 +79,43 @@ const AccountMenu = () => {
             open={menuOpen}
             onClose={closeMenu}
           >
-            <MenuItem onClick={handleLogout}>
-              {translations.Header.logout}
-            </MenuItem>
-            {user && user.accountType !== 'anonymous' ? (
-              <MenuItem onClick={handleAccount}>
-                {translations.Header.account}
-              </MenuItem>
-            ) : null}
             {user && !user.pro && user.accountType !== 'anonymous' ? (
-              <MenuItem onClick={handleSubscribe}>
-                <Star
-                  style={{
-                    color: colors.yellow[700],
-                    position: 'relative',
-                    top: -2,
-                    left: -5,
-                  }}
-                />{' '}
-                Go Pro!
+              <MenuItem onClick={handleSubscribe} data-cy="account-menu-go-pro">
+                <ListItemIcon>
+                  <Star
+                    style={{
+                      color: colors.yellow[700],
+                      position: 'relative',
+                      top: -1,
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText>Go Pro!</ListItemText>
               </MenuItem>
             ) : null}
+            {isNotAnon ? (
+              <MenuItem onClick={handleAccount} data-cy="account-menu-account">
+                <ListItemIcon>
+                  <AccountCircle />
+                </ListItemIcon>
+                <ListItemText>{t('Header.account')}</ListItemText>
+              </MenuItem>
+            ) : null}
+            {isAdmin ? (
+              <MenuItem onClick={handleAdmin} data-cy="account-menu-admin">
+                <ListItemIcon>
+                  <Key />
+                </ListItemIcon>
+                <ListItemText>{t('Header.adminPanel')}</ListItemText>
+              </MenuItem>
+            ) : null}
+            {isAdmin || isNotAnon ? <Divider /> : null}
+            <MenuItem onClick={handleLogout} data-cy="account-menu-logout">
+              <ListItemIcon>
+                <Logout />
+              </ListItemIcon>
+              <ListItemText>{t('Header.logout')}</ListItemText>
+            </MenuItem>
           </Menu>
         ) : null}
       </div>
@@ -98,9 +127,10 @@ const AccountMenu = () => {
         onClick={handleModalOpen}
         variant="contained"
         color="secondary"
+        data-cy="login-button"
         startIcon={<AccountIcon />}
       >
-        {translations.AnonymousLogin.header}
+        {t('AnonymousLogin.header')}
       </Button>
       {modalOpened && <LoginModal onClose={handleModalClose} />}
     </>
@@ -112,7 +142,7 @@ const AvatarContainer = styled.div`
   align-items: center;
   cursor: pointer;
 
-  > *:first-child {
+  > :first-of-type {
     margin-right: 10px;
   }
 `;

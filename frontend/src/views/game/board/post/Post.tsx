@@ -19,10 +19,10 @@ import {
   EmojiEmotionsOutlined,
 } from '@mui/icons-material';
 import { Draggable, DraggableProvided } from 'react-beautiful-dnd';
-import useTranslations from '../../../../translations';
+import { useTranslation } from 'react-i18next';
 import EditableLabel from '../../../../components/EditableLabel';
 import { Palette } from '../../../../Theme';
-import { Post } from '@retrospected/common';
+import { Post } from 'common';
 import { usePostUserPermissions } from '../usePostUserPermissions';
 import { countVotes, enumerateVotes } from '../../utils';
 import GiphySearchBox from 'react-giphy-searchbox';
@@ -91,7 +91,7 @@ const PostItem = ({
     isBlurred,
   } = usePostUserPermissions(post);
   const classes = useStyles();
-  const { Actions: translations, Post: postTranslations } = useTranslations();
+  const { t } = useTranslation();
   const { encrypt, decrypt } = useCrypto();
   const canDecrypt = useCanDecrypt();
   const [giphyImageUrl, showGiphyImage, toggleShowGiphyImage] = useGiphy(
@@ -187,7 +187,7 @@ const PostItem = ({
                     color="textSecondary"
                     component="div"
                   >
-                    {postTranslations.by}&nbsp;
+                    {t('Post.by')}&nbsp;
                   </Typography>
                   <Typography
                     variant="caption"
@@ -209,12 +209,12 @@ const PostItem = ({
             </CardContent>
             {displayAction && canCreateAction && (
               <CardContent className={classes.actionContainer}>
-                <Typography variant="caption">{translations.title}:</Typography>
+                <Typography variant="caption">{t('Actions.title')}:</Typography>
                 <Typography variant="body1">
                   <EditableLabel
                     value={decrypt(post.action || '')}
                     onChange={handleEditAction}
-                    label={translations.title}
+                    label={t('Actions.title')}
                     focused={actionsToggled && !post.action}
                     multiline
                   />
@@ -227,8 +227,8 @@ const PostItem = ({
                 <>
                   {giphyImageUrl && (
                     <ActionButton
-                      ariaLabel={postTranslations.toggleGiphyButton!}
-                      tooltip={postTranslations.toggleGiphyButton!}
+                      ariaLabel={t('Post.toggleGiphyButton')}
+                      tooltip={t('Post.toggleGiphyButton')}
                       icon={
                         <InsertPhotoTwoTone
                           style={{
@@ -244,8 +244,8 @@ const PostItem = ({
 
                   {canCreateAction && (
                     <ActionButton
-                      ariaLabel={postTranslations.setActionButton!}
-                      tooltip={postTranslations.setActionButton!}
+                      ariaLabel={t('Post.setActionButton')}
+                      tooltip={t('Post.setActionButton')}
                       icon={
                         post.action ? (
                           <Assignment className={classes.actionIcon} />
@@ -258,8 +258,8 @@ const PostItem = ({
                   )}
                   {canEdit && config.hasGiphy && canUseGiphy && (
                     <ActionButton
-                      ariaLabel={postTranslations.setGiphyButton!}
-                      tooltip={postTranslations.setGiphyButton!}
+                      ariaLabel={t('Post.setGiphyButton')}
+                      tooltip={t('Post.setGiphyButton')}
                       icon={
                         <EmojiEmotionsOutlined className={classes.ghipyIcon} />
                       }
@@ -269,8 +269,8 @@ const PostItem = ({
                   )}
                   {canDelete && (
                     <ActionButton
-                      ariaLabel={postTranslations.deleteButton!}
-                      tooltip={postTranslations.deleteButton!}
+                      ariaLabel={t('Post.deleteButton')}
+                      tooltip={t('Post.deleteButton')}
                       icon={
                         <DeleteForeverOutlined
                           style={{
@@ -404,8 +404,9 @@ const BlurOverlay = styled.div`
   height: 100%;
   background-color: rgba(255, 255, 255, 0.9);
   z-index: 2;
-  @supports (backdrop-filter: blur(3px)) {
+  @supports (backdrop-filter: blur(3px)) or (-webkit-backdrop-filter: blur(3px)) {
     background-color: rgba(255, 255, 255, 0.3);
+    -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
   }
 `;
@@ -422,7 +423,7 @@ const LabelContainer = styled.div<{ blurred: boolean }>`
     content: '(hidden for now)';
   }
 
-  @supports (backdrop-filter: blur(3px)) {
+  @supports (backdrop-filter: blur(3px)) or (-webkit-backdrop-filter: blur(3px)) {
     > * {
       display: block;
     }

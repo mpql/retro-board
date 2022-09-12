@@ -1,9 +1,15 @@
 import 'core-js/stable';
 import 'whatwg-fetch';
 import ReactDOM from 'react-dom';
+import './translations/i18n';
 import App from './App';
 import { initialiseAnalytics, initialiseSentry } from './track';
 import * as serviceWorker from './serviceWorker';
+import 'emoji-mart/css/emoji-mart.css';
+
+(window as any).global = window;
+// @ts-ignore
+window.Buffer = window.Buffer || require('buffer').Buffer;
 
 initialiseSentry();
 initialiseAnalytics();

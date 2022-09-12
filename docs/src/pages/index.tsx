@@ -5,6 +5,7 @@ import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import styles from './index.module.css';
 import HomepageFeatures from '../components/HomepageFeatures';
+import 'react-toggle/style.css';
 
 function HomepageHeader() {
   const { siteConfig } = useDocusaurusContext();
@@ -30,8 +31,8 @@ export default function Home(): JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />"
+      title={`Docs - ${siteConfig.title}`}
+      description="Documentation for Retrospected"
     >
       <HomepageHeader />
       <main>

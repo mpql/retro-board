@@ -15,7 +15,11 @@ export interface BackendConfig {
   BACKEND_PORT: number;
   SQL_LOG: boolean;
   BASE_URL: string;
+  SECURE_COOKIES: boolean;
   SENTRY_URL: string;
+  DISABLE_ANONYMOUS_LOGIN: boolean;
+  DISABLE_PASSWORD_LOGIN: boolean;
+  DISABLE_PASSWORD_REGISTRATION: boolean;
   TWITTER_KEY: string;
   TWITTER_SECRET: string;
   GOOGLE_KEY: string;
@@ -24,6 +28,7 @@ export interface BackendConfig {
   GITHUB_SECRET: string;
   SLACK_KEY: string;
   SLACK_SECRET: string;
+  SLACK_BOT_ENABLE: boolean;
   MICROSOFT_KEY: string;
   MICROSOFT_SECRET: string;
   OKTA_AUDIENCE: string;
@@ -31,9 +36,6 @@ export interface BackendConfig {
   OKTA_SECRET: string;
   SENDGRID_API_KEY: string;
   SENDGRID_SENDER: string;
-  SENDGRID_VERIFICATION_EMAIL_TID: string;
-  SENDGRID_RESET_PASSWORD_TID: string;
-  SENDGRID_SELF_HOST_EMAIL_TID: string;
   STRIPE_SECRET: string;
   STRIPE_WEBHOOK_SECRET: string;
   STRIPE_TEAM_PRODUCT: string;
@@ -49,6 +51,13 @@ export interface BackendConfig {
   RATE_LIMIT_WS_POINTS: number;
   RATE_LIMIT_WS_DURATION: number;
   WS_MAX_BUFFER_SIZE: number;
+  MAIL_SMTP_HOST: string;
+  MAIL_PORT: number;
+  MAIL_SECURE: boolean;
+  MAIL_USER: string;
+  MAIL_PASSWORD: string;
+  MAIL_SENDER: string;
+  MAIL_ALLOW_SELF_SIGNED_CERTS: boolean;
 }
 
 export type LicenceMetadata = {

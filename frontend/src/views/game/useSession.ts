@@ -5,7 +5,8 @@ import {
   Session,
   VoteExtract,
   SessionOptions,
-} from '@retrospected/common';
+  Message,
+} from 'common';
 import { findIndex } from 'lodash';
 import { useCallback } from 'react';
 import { useRecoilState } from 'recoil';
@@ -17,6 +18,7 @@ interface UseSession {
   resetSession: () => void;
   receivePost: (post: Post) => void;
   receivePostGroup: (postGroup: PostGroup) => void;
+  receiveChatMessage: (message: Message) => void;
   receiveBoard: (session: Session) => void;
   updatePost: (post: Post) => void;
   updatePostGroup: (group: PostGroup) => void;
@@ -26,6 +28,7 @@ interface UseSession {
   editOptions: (options: SessionOptions) => void;
   editColumns: (columns: ColumnDefinition[]) => void;
   lockSession: (locked: boolean) => void;
+  userReady: (userId: string, ready?: boolean) => void;
 }
 
 export default function useSession(): UseSession {
@@ -62,6 +65,7 @@ export default function useSession(): UseSession {
     },
     [setSession]
   );
+
   const receivePostGroup = useCallback(
     (postGroup: PostGroup) => {
       setSession((session) =>
@@ -70,6 +74,20 @@ export default function useSession(): UseSession {
           : {
               ...session,
               groups: [...session.groups, postGroup],
+            }
+      );
+    },
+    [setSession]
+  );
+
+  const receiveChatMessage = useCallback(
+    (message: Message) => {
+      setSession((session) =>
+        !session
+          ? session
+          : {
+              ...session,
+              messages: [...session.messages, message],
             }
       );
     },
@@ -169,6 +187,7 @@ export default function useSession(): UseSession {
     },
     [setSession]
   );
+
   const deletePostGroup = useCallback(
     (groupId: string) => {
       setSession((session) =>
@@ -216,6 +235,7 @@ export default function useSession(): UseSession {
     },
     [setSession]
   );
+
   const lockSession = useCallback(
     (locked: boolean) => {
       setSession((session) =>
@@ -230,6 +250,24 @@ export default function useSession(): UseSession {
     [setSession]
   );
 
+  const userReady = useCallback(
+    (userId: string, ready?: boolean) => {
+      setSession((session) =>
+        !session
+          ? session
+          : {
+              ...session,
+              ready: (
+                ready === undefined ? !session.ready.includes(userId) : ready
+              )
+                ? [...session.ready, userId]
+                : session.ready.filter((id) => id !== userId),
+            }
+      );
+    },
+    [setSession]
+  );
+
   return {
     session,
     renameSession,
@@ -237,6 +275,7 @@ export default function useSession(): UseSession {
     receiveBoard,
     receivePost,
     receivePostGroup,
+    receiveChatMessage,
     receiveVote,
     updatePost,
     updatePostGroup,
@@ -245,5 +284,6 @@ export default function useSession(): UseSession {
     editColumns,
     editOptions,
     lockSession,
+    userReady,
   };
 }

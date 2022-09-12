@@ -1,9 +1,10 @@
-import { IconName, ColumnDefinitionType } from '@retrospected/common';
+import { ColumnDefinitionType } from 'common';
+import { Namespace, TFunction } from 'react-i18next';
 
 export interface ColumnSettings {
   color: string;
   label: string;
-  icon: IconName | null;
+  icon: string | null;
   type: ColumnDefinitionType;
 }
 
@@ -18,3 +19,5 @@ export interface TemplateDefinition {
   type: Template;
   name: string;
 }
+
+export type TranslationFunction = TFunction<Namespace<'ns1'>, undefined>;

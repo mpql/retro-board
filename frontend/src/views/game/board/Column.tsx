@@ -7,8 +7,8 @@ import Tooltip from '@mui/material/Tooltip';
 import { colors } from '@mui/material';
 import { CreateNewFolder, SubdirectoryArrowLeft } from '@mui/icons-material';
 import PostItem from './post/Post';
-import { Post, PostGroup } from '@retrospected/common';
-import useTranslations from '../../../translations';
+import { Post, PostGroup } from 'common';
+import { useTranslation } from 'react-i18next';
 import Group from './Group';
 import {
   Droppable,
@@ -24,7 +24,7 @@ interface ColumnProps {
   column: ColumnContent;
   posts: Post[];
   groups: PostGroup[];
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>> | null;
+  icon: React.ReactElement | null;
   question: string;
   color: string;
   search: string;
@@ -42,7 +42,7 @@ const Column: React.FC<ColumnProps> = ({
   column,
   posts,
   groups,
-  icon: Icon,
+  icon,
   question,
   color,
   search,
@@ -55,7 +55,7 @@ const Column: React.FC<ColumnProps> = ({
   onEditGroup,
   onDeleteGroup,
 }) => {
-  const { Column: columnTranslations } = useTranslations();
+  const { t } = useTranslation();
   const [content, setContent] = useState('');
   const { encrypt } = useCrypto();
   const permissions = useSessionUserPermissions();
@@ -96,9 +96,9 @@ const Column: React.FC<ColumnProps> = ({
           onKeyDown={handleAddKeyboard}
           readOnly={!permissions.canCreatePost}
           startAdornment={
-            Icon ? (
+            icon ? (
               <InputAdornment position="start">
-                <Icon style={{ color: colors.grey[500] }} />
+                <IconContainer>{icon}</IconContainer>
               </InputAdornment>
             ) : null
           }
@@ -109,10 +109,11 @@ const Column: React.FC<ColumnProps> = ({
               </EnterIcon>
             </InputAdornment>
           }
+          inputProps={{ 'data-cy': 'column-input' }}
         />
         {permissions.canCreateGroup ? (
           <AddGroup>
-            <Tooltip title={columnTranslations.createGroupTooltip!}>
+            <Tooltip title={t('Column.createGroupTooltip')}>
               <IconButton onClick={onAddGroup} tabIndex={-1} size="large">
                 <CreateNewFolder />
               </IconButton>
@@ -244,7 +245,7 @@ const Add = styled.div`
   align-items: center;
   margin-bottom: 20px;
 
-  > :first-child {
+  > :first-of-type {
     flex: 1;
     input {
       width: 100%;
@@ -283,6 +284,11 @@ const EnterIcon = styled.div`
     display: none;
     visibility: hidden;
   }
+`;
+
+const IconContainer = styled.div`
+  position: relative;
+  top: 4px;
 `;
 
 export default Column;

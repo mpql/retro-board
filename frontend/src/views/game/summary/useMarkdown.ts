@@ -4,7 +4,7 @@ import sortedUniq from 'lodash/sortedUniq';
 import sortBy from 'lodash/sortBy';
 import { format } from 'date-fns';
 import useColumns from '../useColumns';
-import useTranslations from '../../../translations';
+import { useTranslation } from 'react-i18next';
 import { useSummary } from './useSummary';
 import { ColumnStatsItem, ActionItem } from './types';
 import useSession from '../useSession';
@@ -12,7 +12,7 @@ import useSession from '../useSession';
 export default function useMarkdown() {
   const { session } = useSession();
   const columns = useColumns();
-  const translations = useTranslations();
+  const { t } = useTranslation();
   const stats = useSummary(columns);
 
   const result = useMemo(() => {
@@ -37,7 +37,7 @@ export default function useMarkdown() {
     let md = `
 # Retrospected Session
 
-## ${session.name || translations.SessionName.defaultSessionName}
+## ${session.name || t('SessionName.defaultSessionName')}
 
 ### Session details:
 
@@ -68,26 +68,31 @@ ${[...col.items].map((i) => toItem(i, 0)).join('\n')}
     });
 
     return md;
-  }, [session, translations.SessionName.defaultSessionName, stats]);
+  }, [session, t, stats]);
   return result;
 }
 
 function toItem(item: ColumnStatsItem, depth: number) {
   const highlight = item.type === 'group' ? '**' : '';
-  let content = `${'\t'.repeat(depth)}- (+${item.likes}/-${
+  let content = `${' '.repeat(depth * 2)}* (+${item.likes}/-${
     item.dislikes
-  }) ${highlight}${item.content}${highlight}`;
+  }) ${highlight}${toMultiline(item.content)}${highlight}`;
+  if (item.post && item.post.action) {
+    content += `\n${' '.repeat((depth + 1) * 2)}* **Action**: *${toMultiline(
+      item.post.action
+    )}*`;
+  }
   item.children.forEach((child) => {
     content += '\n' + toItem(child, depth + 1);
   });
 
-  return toMultiline(content);
+  return content;
 }
 
 function toAction(action: ActionItem): string {
-  return `- ${action.action}`;
+  return `- ${toMultiline(action.action)}`;
 }
 
 function toMultiline(content: string) {
-  return content.replace(/(?:\r\n|\r|\n)/g, '  \n    ');
+  return content.replace(/(?:\r\n|\r|\n)/g, '  \n');
 }

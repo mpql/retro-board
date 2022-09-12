@@ -1,12 +1,13 @@
-import { RegisterPayload } from '@retrospected/common';
+import { RegisterPayload } from '../../common';
 import { v4 } from 'uuid';
 import { hashPassword } from '../../utils';
 import { UserIdentityEntity } from '../../db/entities';
 import { getIdentityByUsername, registerUser } from '../../db/actions/users';
-import config from '../../config';
+import { canSendEmails } from '../../email/utils';
 
 export default async function registerPasswordUser(
-  details: RegisterPayload
+  details: RegisterPayload,
+  skipValidation = false
 ): Promise<UserIdentityEntity | null> {
   const existingIdentity = await getIdentityByUsername(
     'password',
@@ -24,7 +25,7 @@ export default async function registerPasswordUser(
     type: 'password',
     username: details.username,
     password: hashedPassword,
-    emailVerification: config.SELF_HOSTED ? undefined : v4(),
+    emailVerification: !skipValidation && canSendEmails() ? v4() : undefined,
     language: details.language,
   });
 

@@ -1,5 +1,11 @@
 import { useEffect, useCallback, lazy, Suspense } from 'react';
-import { useHistory, Redirect, Switch, Route } from 'react-router-dom';
+import {
+  useNavigate,
+  Routes,
+  Route,
+  useLocation,
+  useMatch,
+} from 'react-router-dom';
 import { trackPageView } from './track';
 import styled from '@emotion/styled';
 import AppBar from '@mui/material/AppBar';
@@ -16,8 +22,11 @@ import { HomeOutlined } from '@mui/icons-material';
 import ProPill from './components/ProPill';
 import { CodeSplitLoader } from './CodeSplitLoader';
 import useSidePanel from './views/panel/useSidePanel';
-import useIsLicenced from './global/useIsLicenced';
-import { Alert, AlertTitle } from '@mui/material';
+import { Alert, AlertTitle, Button, Hidden } from '@mui/material';
+import useBackendCapabilities from './global/useBackendCapabilities';
+import useIsPro from 'auth/useIsPro';
+import ProButton from 'components/ProButton';
+import { useTranslation } from 'react-i18next';
 
 const Home = lazy(() => import('./views/Home' /* webpackChunkName: "home" */));
 const Game = lazy(() => import('./views/Game' /* webpackChunkName: "game" */));
@@ -84,27 +93,29 @@ const Title = styled(Typography)`
 `;
 
 function App() {
-  const history = useHistory();
-  const licenced = useIsLicenced();
+  const navigate = useNavigate();
+  const backend = useBackendCapabilities();
   const isCompatible = useIsCompatibleBrowser();
   const { toggle: togglePanel } = useSidePanel();
   const isInitialised = useIsInitialised();
   const user = useUser();
-  const goToHome = useCallback(() => history.push('/'), [history]);
+  const isPro = useIsPro();
+  const displayGoPro = !isPro && user && user.accountType !== 'anonymous';
+  const goToHome = useCallback(() => navigate('/'), [navigate]);
+  const location = useLocation();
+  const isOnGamePage = !!useMatch('game/:gameId/*');
+  const { t } = useTranslation();
+
+  // Tracks page views on every location change
   useEffect(() => {
-    trackPageView(window.location.pathname);
-    const unregister = history.listen((location) => {
-      trackPageView(location.pathname);
-    });
-    return () => {
-      unregister();
-    };
-  }, [history]);
+    trackPageView(location.pathname);
+  }, [location.pathname]);
+
   return (
     <div>
-      {!licenced ? (
+      {!backend.licenced ? (
         <Alert title="Unlicenced" severity="error">
-          <AlertTitle>Retrospected is Unlicenced</AlertTitle>
+          <AlertTitle>{t('Main.unlicenced.title')}</AlertTitle>
           This software is unlicenced. You can obtain a licence{' '}
           <a
             target="_blank"
@@ -118,13 +129,21 @@ function App() {
           administration panel.
         </Alert>
       ) : null}
-      <AppBar position="sticky">
+      <AppBar
+        position="sticky"
+        style={{
+          backgroundColor: 'none',
+          background:
+            'linear-gradient(167deg, rgba(0,87,183,1) 28%, rgba(255,215,0,1) 74%)',
+        }}
+      >
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="Menu"
             onClick={togglePanel}
             size="large"
+            data-cy="side-panel-toggle"
           >
             <MenuIcon />
           </IconButton>
@@ -144,36 +163,46 @@ function App() {
           <ProPillContainer>
             <ProPill small />
           </ProPillContainer>
-          <Route path="/game/:gameId" component={Invite} />
+          {displayGoPro ? (
+            <Hidden mdDown>
+              <GoProContainer>
+                <ProButton>
+                  <Button variant="contained" color="secondary">
+                    ⭐️ Go Pro!
+                  </Button>
+                </ProButton>
+              </GoProContainer>
+            </Hidden>
+          ) : null}
+          <Spacer />
+          {isOnGamePage ? <Invite /> : null}
           {isInitialised ? (
             <AccountMenu />
           ) : (
-            <Initialising>Loading...</Initialising>
+            <Initialising>{t('Main.loading')}</Initialising>
           )}
         </Toolbar>
       </AppBar>
       <Suspense fallback={<CodeSplitLoader />}>
-        <Switch>
-          <Route path="/" exact>
-            {user ? <Home /> : null}
+        <Routes>
+          <Route path="/" element={user ? <Home /> : null} />
+          <Route path="game/:gameId/*" element={<Game />} />
+          <Route path="validate" element={<ValidatePage />} />
+          <Route path="reset" element={<ResetPasswordPage />} />
+          <Route path="account" element={<AccountPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="subscribe" element={<SubscribePageOuter />}>
+            <Route path="success" element={<SuccessPage />} />
+            <Route path="cancel" element={<CancelPage />} />
           </Route>
-          <Redirect from="/session/:gameId" to="/game/:gameId" />
-          <Route path="/game/:gameId" component={Game} />
-          <Route path="/validate" component={ValidatePage} />
-          <Route path="/reset" component={ResetPasswordPage} />
-          <Route path="/account" component={AccountPage} />
-          <Route path="/login" component={LoginPage} />
-          <Route path="/subscribe" component={SubscribePageOuter} exact />
-          <Route path="/subscribe/success" component={SuccessPage} exact />
-          <Route path="/subscribe/cancel" component={CancelPage} exact />
-          <Route path="/admin" component={AdminPage} />
-          <Route path="/privacy" component={PrivacyPolicyPage} />
-          <Route path="/terms" component={TermsAndConditionsPage} />
-          <Route path="/cookies" component={CookiesPolicyPage} />
-          <Route path="/acceptable-use" component={AcceptableUsePolicyPage} />
-          <Route path="/disclaimer" component={DisclaimerPage} />
-          <Route path="/how-does-encryption-work" component={EncryptionDoc} />
-        </Switch>
+          <Route path="admin" element={<AdminPage />} />
+          <Route path="privacy" element={<PrivacyPolicyPage />} />
+          <Route path="terms" element={<TermsAndConditionsPage />} />
+          <Route path="cookies" element={<CookiesPolicyPage />} />
+          <Route path="acceptable-use" element={<AcceptableUsePolicyPage />} />
+          <Route path="disclaimer" element={<DisclaimerPage />} />
+          <Route path="how-does-encryption-work" element={<EncryptionDoc />} />
+        </Routes>
       </Suspense>
       <Panel />
       <OutdatedBrowser show={!isCompatible} />
@@ -193,10 +222,16 @@ const HomeButton = styled.div`
   margin-right: 10px;
 `;
 
-const ProPillContainer = styled.div`
-  flex: 1;
+const ProPillContainer = styled.div``;
+
+const GoProContainer = styled.div`
+  margin-left: 20px;
 `;
 
 const Initialising = styled.div``;
+
+const Spacer = styled.div`
+  flex: 1;
+`;
 
 export default App;

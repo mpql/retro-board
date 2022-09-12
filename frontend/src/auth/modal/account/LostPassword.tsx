@@ -1,22 +1,19 @@
 import { useCallback, useState } from 'react';
 import Button from '@mui/material/Button';
 import { Alert } from '@mui/material';
-import useTranslations from '../../../translations';
+import { useTranslation } from 'react-i18next';
 import Wrapper from './../Wrapper';
 import Input from '../../../components/Input';
 import { Email } from '@mui/icons-material';
 import { resetPassword } from '../../../api';
 import { Link } from 'react-router-dom';
-import useAdminEmail from '../../../global/useAdminEmail';
-import useIsSelfHosted from '../../../global/useIsSelfHosted';
+import useBackendCapabilities from '../../../global/useBackendCapabilities';
 
 const LostPassword = () => {
-  const { ResetPassword: translations, AuthCommon: authTranslations } =
-    useTranslations();
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [done, setDone] = useState(false);
-  const adminEmail = useAdminEmail();
-  const isSelfHosted = useIsSelfHosted();
+  const backend = useBackendCapabilities();
   const handleForgotPassword = useCallback(() => {
     async function reset() {
       await resetPassword(email);
@@ -25,22 +22,22 @@ const LostPassword = () => {
     reset();
   }, [email]);
 
-  if (isSelfHosted) {
+  if (!backend.emailAvailable && backend.selfHosted) {
     return (
       <Alert severity="info">
-        You are using a Self-Hosted version of Retrospected. In order to reset
-        your password, ask your admin ({adminEmail}) to access the admin page to
-        do that:&nbsp;
+        You are using a Self-Hosted version of Retrospected, without email
+        support. In order to reset your password, ask your admin (
+        {backend.adminEmail}) to access the admin page to do that:&nbsp;
         <Link to="/admin">Admin Panel</Link>
       </Alert>
     );
   }
 
   return done ? (
-    <Alert severity="success">{translations.doneMessage}</Alert>
+    <Alert severity="success">{t('ResetPassword.doneMessage')}</Alert>
   ) : (
     <Wrapper
-      header={translations.header}
+      header={t('ResetPassword.header')}
       actions={
         <Button
           onClick={handleForgotPassword}
@@ -48,17 +45,17 @@ const LostPassword = () => {
           autoFocus
           disabled={!email.length}
         >
-          {translations.resetButton}
+          {t('ResetPassword.resetButton')}
         </Button>
       }
     >
-      <Alert severity="info">{translations.info}</Alert>
+      <Alert severity="info">{t('ResetPassword.info')}</Alert>
 
       <Input
         value={email}
         onChangeValue={setEmail}
-        title={authTranslations.emailField}
-        placeholder={authTranslations.emailField}
+        title={t('AuthCommon.emailField')}
+        placeholder={t('AuthCommon.emailField')}
         type="email"
         variant="standard"
         fullWidth

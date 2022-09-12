@@ -19,7 +19,9 @@ import {
   WsErrorPayload,
   WebsocketMessage,
   WsGroupUpdatePayload,
-} from '@retrospected/common';
+  WsUserReadyPayload,
+  Message,
+} from './common';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 import chalk from 'chalk';
 import moment from 'moment';
@@ -44,6 +46,7 @@ import {
   saveTemplate,
   doesSessionExists,
   wasSessionCreatedBy,
+  toggleReady,
 } from './db/actions/sessions';
 import { getUser, getUserView } from './db/actions/users';
 import {
@@ -58,6 +61,7 @@ import config from './config';
 import { registerVote } from './db/actions/votes';
 import { deserialiseIds, UserIds } from './utils';
 import { QueryFailedError } from 'typeorm';
+import { saveChatMessage } from './db/actions/chat';
 
 const {
   ACK,
@@ -69,6 +73,8 @@ const {
   RECEIVE_EDIT_POST,
   RECEIVE_DELETE_POST_GROUP,
   RECEIVE_EDIT_POST_GROUP,
+  RECEIVE_USER_READY,
+  USER_READY,
   ADD_POST_SUCCESS,
   ADD_POST_GROUP_SUCCESS,
   DELETE_POST,
@@ -92,6 +98,8 @@ const {
   RECEIVE_RATE_LIMITED,
   RECEIVE_ERROR,
   REQUEST_BOARD,
+  CHAT_MESSAGE,
+  RECEIVE_CHAT_MESSAGE,
 } = Actions;
 
 interface Users {
@@ -201,6 +209,12 @@ export default (io: Server) => {
     }
   }
 
+  /**
+   * Check that UserIds is not null
+   * @param userIds User IDs
+   * @param socket Socket
+   * @returns Whether User is not null
+   */
   function checkUser(
     userIds: UserIds | null,
     socket: Socket
@@ -229,6 +243,28 @@ export default (io: Server) => {
         RECEIVE_POST,
         'cannot_save_post',
         createdPost
+      );
+    }
+  };
+
+  const onChatMessage = async (
+    userIds: UserIds | null,
+    sessionId: string,
+    message: Message,
+    socket: Socket
+  ) => {
+    if (checkUser(userIds, socket)) {
+      const createdMessage = await saveChatMessage(
+        userIds.userId,
+        sessionId,
+        message
+      );
+      sendToAllOrError<Message>(
+        socket,
+        sessionId,
+        RECEIVE_CHAT_MESSAGE,
+        'cannot_record_chat_message',
+        createdMessage
       );
     }
   };
@@ -353,6 +389,23 @@ export default (io: Server) => {
     const sessionEntity = await getSessionWithVisitors(sessionId);
     if (sessionEntity) {
       sendClientList(sessionEntity, socket);
+    }
+  };
+
+  const onUserReady = async (
+    userIds: UserIds | null,
+    sessionId: string,
+    _data: void,
+    socket: Socket
+  ) => {
+    if (checkUser(userIds, socket)) {
+      const ready = await toggleReady(sessionId, userIds.userId);
+      const user = await getUser(userIds.userId);
+      sendToAll<WsUserReadyPayload>(socket, sessionId, RECEIVE_USER_READY, {
+        userId: userIds.userId,
+        name: user ? user.name : 'Somebody',
+        ready,
+      });
     }
   };
 
@@ -559,10 +612,13 @@ export default (io: Server) => {
       { type: EDIT_POST_GROUP, handler: onEditPostGroup },
       { type: DELETE_POST_GROUP, handler: onDeletePostGroup },
 
+      { type: CHAT_MESSAGE, handler: onChatMessage },
+
       { type: JOIN_SESSION, handler: onJoinSession },
       { type: REQUEST_BOARD, handler: onRequestBoard },
       { type: RENAME_SESSION, handler: onRenameSession },
       { type: LEAVE_SESSION, handler: onLeaveSession },
+      { type: USER_READY, handler: onUserReady },
       { type: EDIT_OPTIONS, handler: onEditOptions, onlyAuthor: true },
       { type: EDIT_COLUMNS, handler: onEditColumns, onlyAuthor: true },
       { type: SAVE_TEMPLATE, handler: onSaveTemplate, onlyAuthor: true },

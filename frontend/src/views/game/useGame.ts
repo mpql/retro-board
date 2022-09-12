@@ -20,11 +20,14 @@ import {
   WebsocketMessage,
   Session,
   WsGroupUpdatePayload,
-} from '@retrospected/common';
+  Message,
+  WsUserReadyPayload,
+  ChatMessagePayload,
+} from 'common';
 import { v4 } from 'uuid';
 import find from 'lodash/find';
 import { setScope, trackAction, trackEvent } from '../../track';
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import { useUserMetadata } from '../../auth/useUser';
 import { getMiddle, getNext } from './lexorank';
 import { useSnackbar } from 'notistack';
@@ -33,13 +36,13 @@ import {
   getRemovedParticipants,
   joinNames,
 } from './participants-notifiers';
-import useTranslation from '../../translations/useTranslations';
 import { omit } from 'lodash';
 import { AckItem } from './types';
 import useMutableRead from '../../hooks/useMutableRead';
 import useParticipants from './useParticipants';
 import useUnauthorised from './useUnauthorised';
 import useSession from './useSession';
+import { useTranslation } from 'react-i18next';
 
 export type Status =
   /**
@@ -66,7 +69,7 @@ export type Status =
 const debug = process.env.NODE_ENV === 'development';
 
 function sendFactory(
-  socket: SocketIOClient.Socket,
+  socket: Socket,
   sessionId: string,
   setAcks?: React.Dispatch<React.SetStateAction<AckItem[]>>
 ) {
@@ -95,12 +98,12 @@ const useGame = (sessionId: string) => {
   const { user, initialised: userInitialised } = useUserMetadata();
   const userId = !user ? user : user.id;
   const { enqueueSnackbar } = useSnackbar();
-  const translations = useTranslation();
+  const { t } = useTranslation();
   const [status, setStatus] = useState<Status>(
     user === undefined ? 'disconnected' : 'not-connected'
   );
   const statusValue = useMutableRead(status);
-  const [socket, setSocket] = useState<SocketIOClient.Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const { participants, updateParticipants } = useParticipants();
   const { setUnauthorised, resetUnauthorised } = useUnauthorised();
   const [acks, setAcks] = useState<AckItem[]>([]);
@@ -109,6 +112,7 @@ const useGame = (sessionId: string) => {
     session,
     receivePost,
     receivePostGroup,
+    receiveChatMessage,
     receiveBoard,
     deletePost,
     updatePost,
@@ -120,6 +124,7 @@ const useGame = (sessionId: string) => {
     editOptions,
     editColumns,
     lockSession,
+    userReady,
   } = useSession();
 
   const allowMultipleVotes = session
@@ -139,7 +144,7 @@ const useGame = (sessionId: string) => {
 
   // Creating the socket
   useEffect(() => {
-    let newSocket: SocketIOClient.Socket | null = null;
+    let newSocket: Socket | null = null;
     if (status === 'not-connected' && userInitialised) {
       newSocket = io();
       setSocket(newSocket);
@@ -254,6 +259,13 @@ const useGame = (sessionId: string) => {
       receivePostGroup(group);
     });
 
+    socket.on(Actions.RECEIVE_CHAT_MESSAGE, (message: Message) => {
+      if (debug) {
+        console.log('Receive new chat message: ', message);
+      }
+      receiveChatMessage(message);
+    });
+
     socket.on(Actions.RECEIVE_BOARD, (session: Session) => {
       if (debug) {
         console.log('Receive entire board: ', session);
@@ -354,7 +366,7 @@ const useGame = (sessionId: string) => {
       if (debug) {
         console.log('Receive Error: ', payload);
       }
-      enqueueSnackbar(translations.PostBoard.error!(payload.type), {
+      enqueueSnackbar(t(`PostBoard.error_${payload.type}` as any), {
         variant: 'error',
       });
       if (payload.type !== 'cannot_get_session') {
@@ -370,14 +382,30 @@ const useGame = (sessionId: string) => {
         { variant: 'error', title: 'Rate Limit Error' }
       );
     });
+
+    socket.on(
+      Actions.RECEIVE_USER_READY,
+      ({ userId: readyUserId, ready, name }: WsUserReadyPayload) => {
+        if (debug) {
+          console.log('Receive user ready: ', readyUserId);
+        }
+        userReady(readyUserId, ready);
+        if (userId !== readyUserId && ready) {
+          enqueueSnackbar(t('PostBoard.userIsReady', { user: name }), {
+            variant: 'success',
+          });
+        }
+      }
+    );
   }, [
     socket,
     status,
     sessionId,
-    translations,
+    t,
     statusValue,
     resetSession,
     receivePost,
+    receiveChatMessage,
     receiveVote,
     receiveBoard,
     updateParticipants,
@@ -392,6 +420,8 @@ const useGame = (sessionId: string) => {
     lockSession,
     enqueueSnackbar,
     setUnauthorised,
+    userReady,
+    userId,
   ]);
 
   const [previousParticipans, setPreviousParticipants] = useState(participants);
@@ -404,7 +434,7 @@ const useGame = (sessionId: string) => {
         participants
       );
       if (added.length) {
-        enqueueSnackbar(translations.Clients.joined!(joinNames(added)), {
+        enqueueSnackbar(t('Clients.joined', { users: joinNames(added) }), {
           variant: 'success',
         });
       }
@@ -414,19 +444,13 @@ const useGame = (sessionId: string) => {
         participants
       );
       if (removed.length) {
-        enqueueSnackbar(translations.Clients.left!(joinNames(removed)), {
+        enqueueSnackbar(t('Clients.left', { users: joinNames(removed) }), {
           variant: 'info',
         });
       }
       setPreviousParticipants(participants);
     }
-  }, [
-    participants,
-    previousParticipans,
-    enqueueSnackbar,
-    userId,
-    translations,
-  ]);
+  }, [participants, previousParticipans, enqueueSnackbar, userId, t]);
 
   // Callbacks
   const onAddPost = useCallback(
@@ -452,14 +476,32 @@ const useGame = (sessionId: string) => {
     [receivePost, send, user]
   );
 
+  const onChatMessage = useCallback(
+    (content: string) => {
+      if (send && user) {
+        const message: Message = {
+          content,
+          created: new Date(),
+          id: v4(),
+          user,
+        };
+
+        receiveChatMessage(message);
+        send<ChatMessagePayload>(Actions.CHAT_MESSAGE, message);
+        trackAction(Actions.CHAT_MESSAGE);
+      }
+    },
+    [user, receiveChatMessage, send]
+  );
+
   const onAddGroup = useCallback(
     (columnIndex: number, rank: string) => {
-      if (send) {
+      if (send && user) {
         const group: PostGroup = {
           id: v4(),
           label: 'My Group',
           column: columnIndex,
-          user: user!,
+          user,
           posts: [],
           rank,
         };
@@ -682,11 +724,20 @@ const useGame = (sessionId: string) => {
     [send, lockSession]
   );
 
+  const onUserReady = useCallback(() => {
+    if (send && userId) {
+      userReady(userId);
+      send<void>(Actions.USER_READY);
+      trackAction(Actions.USER_READY);
+    }
+  }, [send, userReady, userId]);
+
   return {
     status,
     acks,
     onAddPost,
     onAddGroup,
+    onChatMessage,
     onEditPost,
     onEditPostGroup,
     onMovePost,
@@ -700,6 +751,7 @@ const useGame = (sessionId: string) => {
     onSaveTemplate,
     onLockSession,
     reconnect,
+    onUserReady,
   };
 };
 

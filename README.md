@@ -5,8 +5,6 @@
 
 This is a Retrospective Idea board, powering [retrospected.com](http://www.retrospected.com).
 
-Documentation [available here](https://docs.retrospected.com).
-
 &nbsp;
 
 <p align="center">
@@ -27,14 +25,14 @@ This project is both an actual product, and also a technology demo using the lat
 
 It features the following technologies:
 
-- [React 17](https://github.com/facebook/react)
+- [React 18](https://github.com/facebook/react)
 - [React Hooks](https://reactjs.org/docs/hooks-intro.html)
-- [React Router 4](https://github.com/ReactTraining/react-router)
-- [Mono Repo / Yarn Workspaces](https://yarnpkg.com/lang/en/docs/workspaces)
-- [TypeScript 4](https://www.typescriptlang.org/)
+- [React Router 6](https://reactrouter.com/)
+- [TypeScript 4.6](https://www.typescriptlang.org/)
 - [Recoil.js](https://recoiljs.org), as the global state management library
 - [Socket IO](http://socket.io)
-- [Webpack 4](https://github.com/webpack/webpack) (See older versions for Webpack 1, 2 and 3)
+- [Webpack 5](https://github.com/webpack/webpack) (See older versions for Webpack 1, 2 and 3)
+- [Create React App 5](https://create-react-app.dev/docs/getting-started/)
 - [MUI 5](https://mui.com) for our components (previously known as Material-UI)
 - [Material UI design](https://www.google.com/design/spec/material-design/introduction.html)
 - [Emotion](https://emotion.sh/docs/introduction)
@@ -55,9 +53,10 @@ It features the following technologies:
 - [Yarn](https://yarnpkg.com/en/), replacing NPM
 - [Docker](https://docker.com), for easy deployment
 - [Kubernetes](https://kubernetes.io/), to scale Retrospected for its 10M+ users (not)
-- [Travis](http://travis-ci.org/), for Continuous Integration and Deployment (CI/CD)
+- [GitHub Actions](https://github.com/features/actions), for Continuous Integration and Deployment (CI/CD)
 - [Multi-Architecture](https://github.com/docker/buildx/), for automatic compatibility with ARM-based servers
 - [Stripe](https://stripe.com/), for our payment solution
+- [Docusaurus](http://docusaurus.io/), for our documentation
 
 Previous versions, up to v1.0.1 featured the following libraries:
 
@@ -67,91 +66,124 @@ Previous versions, up to v1.0.1 featured the following libraries:
 - ~~[reselect](https://github.com/reactjs/reselect)~~
 - ~~[ESLint](http://eslint.org/) for JS and JSX~~
 
-## How to try it out 🚀
+## Documentation 📖
 
-You must have `docker` and `docker-compose` installed on your system.
+You can browse the documentation [here](https://docs.retrospected.com).
 
-- Clone this repository
-- Then run `docker-compose up -d`.
-- Open your browser at [http://localhost:1800](http://localhost:1800)
-- _(then please wait a few minutes the first time for the database to initialise)_
+## Using Retrospected 🚀
 
-## How to run for development 📝
+You have two ways of running Retrospected:
 
-### Prerequisites 💿
+- Using the public version, at [www.retrospected.com](https://www.retrospected.com)
+- Host Retrospected [on your premises](https://docs.retrospected.com/docs/self-hosting/quick-start)
 
-- You must have [docker](https://www.docker.com) and [docker-compose](https://docs.docker.com/compose/) installed on your system.
-- You must also have [Node.js](https://nodejs.org/en/), version 15 (other recent versions will probably work too).
-- `Yarn`: Please install [Yarn](https://yarnpkg.com/en/), as this mono-repo uses **Yarn Workspaces** which won't work with NPM.
+## Want to host Retrospected on your premises? 🖥
 
-### Run 🚀
+You can start an instance of Retrospected in 5 minutes by following the [quick-start guide](https://docs.retrospected.com/docs/self-hosting/quick-start).
 
-- Clone this repository
-- Run Postgres, Redis, PGAdmin locally:
-  - `cd ./retro-board` (that is the `retro-board` directory **within** the repository)
-  - `docker-compose up -d`
-  - `cd ..`
-- `yarn` to install the dependencies (_not_ `npm i`!)
-- `yarn build-common` to build the shared module
-- `yarn migrate` to run the database migrations
-- `yarn backend` to start the backend
-- Open another terminal
-- `yarn frontend` on the second terminal to run the frontend
-- Open your browser on [http://localhost:3000](http://localhost:3000)
-
-## Self-Host Retrospected 🐳
-
-### Prerequisites 💿
-
-- You must obtain a self-hosting licence. You can obtain one [here](https://www.retrospected.com/subscribe?product=self-hosted).
-- When buying a licence, a ready-to-run `docker-compose.yml` file will be sent to you by email with installation instructions.
-- You must have [docker](https://www.docker.com) and [docker-compose](https://docs.docker.com/compose/) installed on your system.
-
-### Try it out 🚀
-
-- Edit `docker-compose.yml` to change credentials and secrets
-- _Optional: for ARM-based systems, use biarms/pgadmin4 instead_
-- Run `docker-compose up -d`
-- Voilà!
-
-This will run a production-ready version of Retrospected automatically, using Postgres and Redis.
-You don't need to have anything installed other than Docker. This will install and run:
-
-- Postgres
-- pgAdmin4 (Web UI for postgres)
-- Redis
-- The Retrospected Node.js Backend
-- The Retrospected React Frontend, served by `nginx`.
-
-## How to run for Production using Kubernetes ☸
-
-Please read the [readme](/k8s/readme.md) file in the `k8s` folder. Please note: Kubernetes
-example configs are not maintained, and are only provided as an example.
-
-## Backups 💾
-
-When using the Docker deployment, your database runs from a container. But if you still need to make some backup of your data, you can do the following:
-
-- Get the docker database container ID by doing: `docker ps`
-- Run `` docker exec -t <docker_container_id> pg_dumpall -c -U postgres > dump_`date +%d-%m-%Y"_"%H_%M\_%S`.sql ``
-- To restore your databases: `cat dump_1234.sql | docker exec -i <docker_container_id> psql -U postgres`
-
-## How to run the tests ✅
-
-- Clone this repository
-- `yarn` to install the dependencies (_not_ `npm i`!)
-- `yarn test` to run the tests in watch mode
-- **or** `yarn ci-test` to run the tests once
-
-## Road-Map and ideas 🚗 💡
-
-- Highlight posts where the user voted
+This will run a demo version, which you can turn into a fully licenced version by purchasing a [Self Hosted licence](https://www.retrospected.com/subscribe?product=self-hosted).
 
 ## Versions History
+
+### Version 4.16.1
+
+- Fixed a bug where sessions could not be deleted when there was any chat messages (👏 Thanks Florin Bicher for the report)
+- Update icon
+- Better Slack integration
+
+### Version 4.16.0
+
+- Complete overhaul of the translations. Switching to [i18next](https://www.i18next.com). Translated all languages using Machine Learning (via Crowdin)
+- Added translations for the Ukrainian language, and a link to provide help for [Ukraine 🇺🇦](https://www.gov.uk/government/news/ukraine-what-you-can-do-to-help)
+- Fix the empty file download when logging using Google OAuth
+- Upgrade the documentation to the latest version of Docusaurus
+- Add more integration tests, covering password accounts and account deletion
+- Added the language picker in the account page, in addition to the side panel
+
+### Version 4.15.0
+
+- **Self-Hosting**: Improve Admin dashboard for Self-Hosted, allowing the admin to add and delete users
+- **Self-Hosting**: Add an option to allow self-signed certificates for the SMTP server, for sending emails
+- Fix GDPR account deletion, which did not work when the user had any chat messages
+- Upgrade React typings to v18
+- Upgrade all frontend dependencies
+
+### Version 4.14.1 (hotfix)
+
+- Remove CSRF code, causing random issues
+
+### Version 4.14.0
+
+- Upgrade to React 18
+- Replace icons by emoji for columns headers (fully customisable)
+- **Self-Hosting**: Adding SMTP support for self-hosting, in addition to SendGrid. 👏 Thanks [@dayByte](https://github.com/dayByte) for the idea. ([#365](https://github.com/antoinejaussoin/retro-board/issues/365)).
+- **Self-Hosting**: Simplification of SendGrid setup, by removing the need of creating email templates. They are now hardcoded.
+- **Self-Hosting**: Improving email templates
+- Improving Text and Markdown exports on Summary Mode. 👏 Thanks Jakob J for the idea. ([#384](https://github.com/antoinejaussoin/retro-board/issues/384)). 
+
+### Version 4.13.0
+
+- Adding the option of paying for Retrospected Pro annually, getting one month free in the process
+- Update prices, especially for USD
+- Make the integration tests less brittle by using specific attributes
+- Upgrade (finally!) to React-Router v6.
+- **Self-Hosting**: Allow an administrator to disable Anonymous Logins (to force users to use regular accounts).
+
+### Version 4.12.1 (hotfix)
+
+- Adding users to a Pro Team subscription wasn't working anymore, because of Webpack 5.
+
+### Version 4.12.0
+
+- Changing naming convention for the database. All fields and tables are now `snake_case`.
+- Simplified the configuration of TypeORM, removed the generation of `ormconfig.json`.
+- Added Integration tests using Cypress to catch Docker-specific errors and have some basic smoke tests.
+- Upgrade to `react-scripts` (Create React App) 5.0.0
+- Upgrade jQuery (for the marketing / home page), to 3.6.0 for security reasons
+- ⏫ Upgrading dependencies
+
+### Version 4.11.5 (hotfix)
+
+- Making secure cookies an optional setting, as they won't work unless it is hosted on HTTPS.
+
+### Version 4.11.4 (hotfix)
+
+- Fixing a migration issue when installing from scratch
+
+### Version 4.11.3 (hotfix)
+
+- Adding hardcoded licence for a specific self-hosted client.
+
+### Version 4.11.2 (hotfix)
+
+- Encrypt chat messages on encrypted sessions
+- Ensure long chat messages are displayed across multiple lines
+
+### Version 4.11.1 (hotfix)
+
+- Reverting the migration from react-scripts (create-react-app) 5.0.0 to 4.0.3. The new version includes Webpack 5, which causes issues with polyfills. The issue should be fixed in 5.0.1 which is not available yet.
+
+### Version 4.11.0
+
+- Adding a chat functionality. Send messages to your colleagues without having to use Slack or any other external tool!
+- Add the author (when the "Show Author" option is enabled) in the summary panel.  👏 Thanks [@hmlkao](https://github.com/hmlkao) for the idea. ([#336](https://github.com/antoinejaussoin/retro-board/issues/336)).
+- Deprecate Yarn Workspaces to limit dependency sharing
+- ⏫ Upgrade most dependencies for security reasons
+- Upgrade Nginx image to fix security issues
+- Force secure cookies on production
+- Add Trivy vulnerability scanner on CI
+
+### Version 4.10.0
+
+- Add better GDPR compliance, with the right to be forgotten: allows a user to delete all of their data
+- Add the ability for users to signal if they are done with their posts, to help the moderator
+- ⏫ Upgrading dependencies
 
 ### Version 4.9.0
 
 - Brand new [documentation website](https://docs.retrospected.com).
+- Migrate all docker images from `antoinejaussoin/retro-board-*` to `retrospected/*`.
+- Allowing Self-Hosted instances to use SendGrid for email recovery
 - 🐛 The Unlimited subscription domain check was not accepting valid domains such as `.ventures` or `.agency`.
 
 ### Version 4.8.0
@@ -510,7 +542,7 @@ When using the Docker deployment, your database runs from a container. But if yo
 - Converting entire project to 2-space indentation
 - ⏫ Upgrade other dependencies
 - 🇵🇱 Polish Translation (👏 Thanks [@olaf-cichocki](https://github.com/olaf-cichocki))
-- 🇦🇪 Arabic Translation (👏 Thanks [@Meshredded](https://github.com/Meshredded))
+- 🇦🇪 Arabic Translation (👏 Thanks [@FrenchTechLead](https://github.com/FrenchTechLead))
 - Improved the loading screen
 
 ### Version 0.9.0
@@ -648,14 +680,14 @@ Many thanks to the following contributors who helped translating the app:
 - Spanish: [@andresin87](https://github.com/andresin87)
 - Chinese: [@aqutw](https://github.com/aqutw)
 - Polish: [@olaf-cichocki](https://github.com/olaf-cichocki)
-- Arabic: [@Meshredded](https://github.com/Meshredded)
+- Arabic: [@FrenchTechLead](https://github.com/FrenchTechLead)
 - Japanese: [@sat0yu](https://github.com/sat0yu)
 - German: [@PaulBrandt](https://github.com/PaulBrandt)
 - Italian: [@mventuri](https://github.com/mventuri)
 
 If you are a native speaker of another language, please don't hesitate to make a pull request to add a translation.
 
-Special thanks to [@andresin87](https://github.com/andresin87) for pointing the `flag-icon-css` package to me, it replaces the PNG flags in a neater way.
+Special thanks to [@andresin87](https://github.com/andresin87) for pointing the `flag-icons` package to me, it replaces the PNG flags in a neater way.
 
 Another special thanks to Browserstack, as they allow me to test this project in other browsers.
 

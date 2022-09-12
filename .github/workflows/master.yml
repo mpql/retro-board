@@ -32,8 +32,8 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKER_NEW_USERNAME }}
+          password: ${{ secrets.DOCKER_NEW_PASSWORD }}
 
       - name: Build and push Documentation
         uses: docker/build-push-action@v2
@@ -41,7 +41,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           file: docs/Dockerfile
           context: docs
-          tags: antoinejaussoin/retro-board-docs:latest,antoinejaussoin/retro-board-docs:${{ steps.package.outputs.current-version }}
+          tags: retrospected/docs:latest,retrospected/docs:${{ steps.package.outputs.current-version }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
 
@@ -50,8 +50,8 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           file: backend/Dockerfile
-          context: .
-          tags: antoinejaussoin/retro-board-backend:latest,antoinejaussoin/retro-board-backend:${{ steps.package.outputs.current-version }}
+          context: backend
+          tags: retrospected/backend:latest,retrospected/backend:${{ steps.package.outputs.current-version }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
 
@@ -60,8 +60,8 @@ jobs:
         with:
           builder: ${{ steps.buildx.outputs.name }}
           file: frontend/Dockerfile
-          context: .
-          tags: antoinejaussoin/retro-board-frontend:latest,antoinejaussoin/retro-board-frontend:${{ steps.package.outputs.current-version }}
+          context: frontend
+          tags: retrospected/frontend:latest,retrospected/frontend:${{ steps.package.outputs.current-version }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
 
@@ -71,6 +71,9 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           file: maintenance/Dockerfile
           context: maintenance
-          tags: antoinejaussoin/maintenance:latest,antoinejaussoin/maintenance:${{ steps.package.outputs.current-version }}
+          tags: retrospected/maintenance:latest,retrospected/maintenance:${{ steps.package.outputs.current-version }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
+
+      - name: Run Integration Tests
+        run: docker-compose -f ./integration/docker-compose.ci.master.yml up --exit-code-from cypress

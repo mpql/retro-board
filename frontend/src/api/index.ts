@@ -8,8 +8,9 @@ import {
   ResetChangePasswordPayload,
   FullUser,
   Product,
-  SelfHostingPayload,
-} from '@retrospected/common';
+  BackendCapabilities,
+  DeleteAccountPayload,
+} from 'common';
 import config from '../utils/getConfig';
 import { v4 } from 'uuid';
 import { CHECK_PREFIX, encrypt } from '../crypto/crypto';
@@ -98,11 +99,30 @@ interface RegisterResponse {
   loggedIn: boolean;
 }
 
+export async function addUser(
+  name: string,
+  email: string,
+  password: string,
+  language: string
+) {
+  return registerBase(name, email, password, language, `/api/user`);
+}
+
 export async function register(
   name: string,
   email: string,
   password: string,
   language: string
+) {
+  return registerBase(name, email, password, language, `/api/register`);
+}
+
+async function registerBase(
+  name: string,
+  email: string,
+  password: string,
+  language: string,
+  endpoint: string
 ): Promise<RegisterResponse> {
   const payload: RegisterPayload = {
     username: email,
@@ -111,7 +131,7 @@ export async function register(
     language,
   };
   try {
-    const response = await fetch(`/api/register`, {
+    const response = await fetch(endpoint, {
       method: 'POST',
       ...requestConfig(),
       body: JSON.stringify(payload),
@@ -206,6 +226,27 @@ export async function deleteSession(sessionId: string): Promise<boolean> {
   return await fetchDelete(`/api/session/${sessionId}`);
 }
 
+export async function deleteAccount(
+  options: DeleteAccountPayload
+): Promise<boolean> {
+  try {
+    return await fetchDelete(`/api/me`, options);
+  } catch (err) {
+    return false;
+  }
+}
+
+export async function deleteUser(
+  user: FullUser,
+  options: DeleteAccountPayload
+): Promise<boolean> {
+  try {
+    return await fetchDelete(`/api/user/${user.identityId}`, options);
+  } catch (err) {
+    return false;
+  }
+}
+
 export async function getGiphyUrl(giphyId: string): Promise<string | null> {
   try {
     const response = await fetch(
@@ -223,8 +264,8 @@ export async function getGiphyUrl(giphyId: string): Promise<string | null> {
   }
 }
 
-export async function fetchSelfHostingInfo(): Promise<SelfHostingPayload | null> {
-  return await fetchGet<SelfHostingPayload | null>(
+export async function fetchBackendCapabilities(): Promise<BackendCapabilities | null> {
+  return await fetchGet<BackendCapabilities | null>(
     '/api/admin/self-hosting',
     null
   );

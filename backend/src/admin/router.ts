@@ -6,22 +6,26 @@ import {
 } from '../db/actions/users';
 import config from '../config';
 import { isLicenced } from '../security/is-licenced';
-import {
-  AdminChangePasswordPayload,
-  SelfHostingPayload,
-} from '@retrospected/common';
+import { AdminChangePasswordPayload, BackendCapabilities } from '../common';
 import { getIdentityFromRequest, hashPassword } from '../utils';
-import csurf from 'csurf';
+import { canSendEmails } from '../email/utils';
 
 const router = express.Router();
-const csrfProtection = csurf();
 
 router.get('/self-hosting', async (_, res) => {
   const licence = await isLicenced();
-  const payload: SelfHostingPayload = {
+  const payload: BackendCapabilities = {
     adminEmail: config.SELF_HOSTED_ADMIN,
     selfHosted: config.SELF_HOSTED,
     licenced: !!licence,
+    emailAvailable: canSendEmails(),
+    slackClientId:
+      config.SLACK_BOT_ENABLE && config.SLACK_KEY
+        ? config.SLACK_KEY
+        : undefined,
+    disableAnonymous: config.DISABLE_ANONYMOUS_LOGIN,
+    disablePasswords: config.DISABLE_PASSWORD_LOGIN,
+    disablePasswordRegistration: config.DISABLE_PASSWORD_REGISTRATION,
     oAuth: {
       google: !!config.GOOGLE_KEY && !!config.GOOGLE_SECRET,
       github: !!config.GITHUB_KEY && !!config.GITHUB_SECRET,
@@ -43,7 +47,7 @@ router.get('/users', async (req, res) => {
   res.send(users.map((u) => u.toJson()));
 });
 
-router.patch('/user', csrfProtection, async (req, res) => {
+router.patch('/user', async (req, res) => {
   const authIdentity = await getIdentityFromRequest(req);
   if (!authIdentity || authIdentity.user.email !== config.SELF_HOSTED_ADMIN) {
     return res.status(403).send('You are not allowed to do this');

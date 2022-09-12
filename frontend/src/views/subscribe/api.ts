@@ -3,7 +3,7 @@ import {
   Plan,
   Currency,
   StripeLocales,
-} from '@retrospected/common';
+} from 'common';
 import { fetchGet, fetchPostGet } from '../../api/fetch';
 
 interface SessionIdResponse {
@@ -14,13 +14,15 @@ export async function createCheckoutSession(
   plan: Plan,
   currency: Currency,
   locale: StripeLocales,
-  domain: string | null
+  domain: string | null,
+  yearly: boolean
 ): Promise<SessionIdResponse | null> {
   const payload: CreateSubscriptionPayload = {
     plan,
     currency,
     domain,
     locale,
+    yearly,
   };
   return await fetchPostGet<
     CreateSubscriptionPayload,

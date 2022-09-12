@@ -8,15 +8,15 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import { colors } from '@mui/material';
 import { AllInclusive, Lock, VerifiedUser } from '@mui/icons-material';
 import { useCallback, cloneElement } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
 import useIsPro from '../../auth/useIsPro';
 import useIsDisabled from '../../hooks/useIsDisabled';
 import useModal from '../../hooks/useModal';
-import useTranslation from '../../translations/useTranslations';
 import { startTrial } from '../../views/subscribe/api';
 import Feature from './Feature';
 import { trackEvent } from '../../track';
+import { useTranslation } from 'react-i18next';
 
 interface ComponentProp {
   disabled?: boolean;
@@ -37,8 +37,8 @@ function ProButton({ children, quota }: ProButtonProps) {
   const isValid = isPro || (quota && !isDisabled);
   const [opened, open, close] = useModal();
   const clone = isValid ? children : cloneElement(children, { onClick: open });
-  const history = useHistory();
-  const { SubscribeModal: translations } = useTranslation();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const fullScreen = useMediaQuery('(max-width:600px)');
 
   const goToSubscribe = useCallback(
@@ -46,9 +46,10 @@ function ProButton({ children, quota }: ProButtonProps) {
       e.stopPropagation();
       e.preventDefault();
       trackEvent('trial/modal/subscribe');
-      history.push('/subscribe');
+      navigate('/subscribe');
+      close();
     },
-    [history]
+    [navigate, close]
   );
 
   const handleStartTrial = useCallback(
@@ -96,32 +97,42 @@ function ProButton({ children, quota }: ProButtonProps) {
         fullScreen={fullScreen}
         open={opened}
       >
-        <DialogTitle id="lock-session-dialog">{translations.title}</DialogTitle>
+        <DialogTitle id="lock-session-dialog">
+          {t('SubscribeModal.title')}
+        </DialogTitle>
         <DialogContent style={{ padding: 0, margin: 0 }}>
-          <Header>{translations.header}</Header>
+          <Header>{t('SubscribeModal.header')}</Header>
         </DialogContent>
         <DialogContent>
-          <DialogContentText>{translations.description}</DialogContentText>
+          <DialogContentText>
+            {t('SubscribeModal.description')}
+          </DialogContentText>
         </DialogContent>
         <DialogContent>
           <Features>
             <Feature
               icon={<Lock />}
               color={colors.red[700]}
-              title={translations.features.encryptedSession.title!}
-              description={translations.features.encryptedSession.description!}
+              title={t('SubscribeModal.features.encryptedSession.title')!}
+              description={
+                t('SubscribeModal.features.encryptedSession.description')!
+              }
             />
             <Feature
               icon={<VerifiedUser />}
               color={colors.green[700]}
-              title={translations.features.privateSessions.title!}
-              description={translations.features.privateSessions.description!}
+              title={t('SubscribeModal.features.privateSessions.title')!}
+              description={
+                t('SubscribeModal.features.privateSessions.description')!
+              }
             />
             <Feature
               icon={<AllInclusive />}
               color={colors.orange[700]}
-              title={translations.features.unlimitedPosts.title!}
-              description={translations.features.unlimitedPosts.description!}
+              title={t('SubscribeModal.features.unlimitedPosts.title')!}
+              description={
+                t('SubscribeModal.features.unlimitedPosts.description')!
+              }
             />
           </Features>
         </DialogContent>
@@ -132,12 +143,14 @@ function ProButton({ children, quota }: ProButtonProps) {
               color="secondary"
               onClick={handleStartTrial}
             >
-              {translations.startTrial}
+              {t('SubscribeModal.startTrial')}
             </Button>
           </LeftButtons>
-          <Button onClick={handleClose}>{translations.cancelButton}</Button>
+          <Button onClick={handleClose}>
+            {t('SubscribeModal.cancelButton')}
+          </Button>
           <Button variant="contained" color="primary" onClick={goToSubscribe}>
-            {translations.subscribeButton}
+            {t('SubscribeModal.subscribeButton')}
           </Button>
         </DialogActions>
       </Dialog>

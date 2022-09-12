@@ -9,12 +9,14 @@ const googleAuth = passport.authenticate('google', {
 });
 const facebookAuth = passport.authenticate('facebook');
 const githubAuth = passport.authenticate('github', { scope: ['user:email'] });
-const slackAuth = passport.authenticate('slack');
+const slackAuth = passport.authenticate('Slack');
 const microsoftAuth = passport.authenticate('microsoft');
 const oktaAuth = passport.authenticate('okta');
 
 function anonAuth(req: Request, res: Response, next: NextFunction) {
   passport.authenticate('local', function (err, user) {
+    res.setHeader('Content-Type', 'application/json');
+
     if (err) {
       return res.status(403).send().end();
     }
@@ -31,6 +33,8 @@ function anonAuth(req: Request, res: Response, next: NextFunction) {
 }
 
 export const endOAuthHandler = (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+
   const io = req.app.get('io');
   io.in(req.session!.socketId).emit('auth', req.user);
   req.logIn(req.user!, (err: unknown) => {

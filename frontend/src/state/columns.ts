@@ -1,18 +1,13 @@
-import {
-  ColumnDefinition,
-  IconName,
-  ColumnDefinitionType,
-} from '@retrospected/common';
-import { Translation } from '../translations';
+import { ColumnDefinition, ColumnDefinitionType } from 'common';
 import { v4 } from 'uuid';
 import keyBy from 'lodash/keyBy';
-import { ColumnSettings, Template } from './types';
+import { ColumnSettings, Template, TranslationFunction } from './types';
 import { getTemplate } from './templates';
 import isEqual from 'lodash/isEqual';
 
 export function buildDefaults(
   template: Template,
-  translations: Translation
+  translations: TranslationFunction
 ): ColumnSettings[] {
   const base = getTemplate(template, translations);
   return base;
@@ -36,14 +31,14 @@ export function toColumnDefinitions(
 
 export function extrapolate(
   colDef: ColumnSettings,
-  translations: Translation
+  translations: TranslationFunction
 ): ColumnSettings {
   const defaults = getTemplateColumnByType(translations);
   const defaultDef = defaults(colDef.type);
   return {
     color: colDef.color || defaultDef.color,
     label: colDef.label || defaultDef.label,
-    icon: (colDef.icon as IconName | null) || defaultDef.icon,
+    icon: (colDef.icon as string | null) || defaultDef.icon,
     type: colDef.type,
   };
 }
@@ -51,7 +46,7 @@ export function extrapolate(
 export function hasChanged(
   before: ColumnSettings[],
   after: ColumnSettings[],
-  translations: Translation
+  translations: TranslationFunction
 ) {
   const extrapolatedBefore = before.map((c) => extrapolate(c, translations));
   const extrapolatedAfter = after.map((c) => extrapolate(c, translations));
@@ -59,103 +54,103 @@ export function hasChanged(
 }
 
 export const getTemplateColumnByType =
-  (translations: Translation) => (type: ColumnDefinitionType) => {
+  (t: TranslationFunction) => (type: ColumnDefinitionType) => {
     const dic = keyBy(
       [
         {
           color: '#D1C4E9',
-          icon: 'help',
-          label: translations.PostBoard.customQuestion,
+          icon: 'question',
+          label: t('PostBoard.customQuestion'),
           type: 'custom',
         },
         {
           color: '#E8F5E9',
-          icon: 'satisfied',
-          label: translations.PostBoard.wellQuestion,
+          icon: 'grinning',
+          label: t('PostBoard.wellQuestion'),
           type: 'well',
         },
         {
           color: '#FFEBEE',
-          icon: 'disatisfied',
-          label: translations.PostBoard.notWellQuestion,
+          icon: 'unamused',
+          label: t('PostBoard.notWellQuestion'),
           type: 'notWell',
         },
         {
           color: '#FFFDE7',
           icon: 'sunny',
-          label: translations.PostBoard.ideasQuestion,
+          label: t('PostBoard.ideasQuestion'),
           type: 'ideas',
         },
         {
           color: '#E8F5E9',
-          icon: 'play',
-          label: translations.PostBoard.startQuestion,
+          icon: 'arrow_forward',
+          label: t('PostBoard.startQuestion'),
           type: 'start',
         },
         {
           color: '#FFEBEE',
-          icon: 'pause',
-          label: translations.PostBoard.stopQuestion,
+          icon: 'black_square_for_stop',
+          label: t('PostBoard.stopQuestion'),
           type: 'stop',
         },
         {
           color: '#BBDEFB',
-          icon: 'fast-forward',
-          label: translations.PostBoard.continueQuestion,
+          icon: 'fast_forward',
+          label: t('PostBoard.continueQuestion'),
           type: 'continue',
         },
         {
           color: '#E8F5E9',
-          icon: 'liked',
-          label: translations.PostBoard.likedQuestion,
+          icon: 'thumbsup',
+          label: t('PostBoard.likedQuestion'),
           type: 'liked',
         },
         {
           color: '#FFEBEE',
-          icon: 'disatisfied',
-          label: translations.PostBoard.learnedQuestion,
+          icon: 'mortar_board',
+          label: t('PostBoard.learnedQuestion'),
           type: 'learned',
         },
         {
           color: '#BBDEFB',
-          icon: 'help',
-          label: translations.PostBoard.lackedQuestion,
+          icon: 'question',
+          label: t('PostBoard.lackedQuestion'),
           type: 'lacked',
         },
         {
           color: '#E1BEE7',
-          icon: 'cocktail',
-          label: translations.PostBoard.longedForQuestion,
+          icon: 'desert_island',
+          label: t('PostBoard.longedForQuestion'),
           type: 'longedFor',
         },
         {
           color: '#E8F5E9',
-          icon: 'link',
-          label: translations.PostBoard.anchorQuestion,
+          icon: 'linked_paperclips',
+          label: t('PostBoard.anchorQuestion'),
           type: 'anchor',
         },
         {
           color: '#FFEBEE',
-          icon: 'boat',
-          label: translations.PostBoard.boatQuestion,
+          icon: 'motor_boat',
+          label: t('PostBoard.boatQuestion'),
           type: 'cargo',
         },
         {
           color: '#BBDEFB',
-          icon: 'cocktail',
-          label: translations.PostBoard.islandQuestion,
+          icon: 'desert_island',
+          label: t('PostBoard.islandQuestion'),
           type: 'island',
         },
         {
           color: '#E1BEE7',
-          icon: 'gesture',
-          label: translations.PostBoard.windQuestion,
+          icon: 'wind_blowing_face',
+          label: t('PostBoard.windQuestion'),
           type: 'wind',
         },
         {
           color: '#FFE0B2',
-          icon: 'fitness',
-          label: translations.PostBoard.rockQuestion,
+          icon: 'moyai',
+          label: t('PostBoard.rockQuestion'),
           type: 'rock',
         },
       ] as ColumnSettings[],

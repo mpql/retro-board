@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { PostGroup } from '@retrospected/common';
+import { PropsWithChildren, useCallback, useState } from 'react';
+import { PostGroup } from 'common';
 import styled from '@emotion/styled';
 import {
   Droppable,
@@ -16,7 +16,7 @@ import {
 } from '@mui/icons-material';
 import EditableLabel from '../../../components/EditableLabel';
 import { Alert, AlertTitle } from '@mui/material';
-import useTranslations from '../../../translations';
+import { useTranslation } from 'react-i18next';
 import useCrypto from '../../../crypto/useCrypto';
 import { Badge } from '@mui/material';
 
@@ -27,14 +27,14 @@ interface GroupProps {
   onDelete: (group: PostGroup) => void;
 }
 
-const Group: React.FC<GroupProps> = ({
+export default function Group({
   group,
   onEditLabel,
   onDelete,
   readonly,
   children,
-}) => {
-  const { Group: groupTranslations } = useTranslations();
+}: PropsWithChildren<GroupProps>) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const { decrypt, encrypt } = useCrypto();
   const handleEditLabel = useCallback(
@@ -94,8 +94,8 @@ const Group: React.FC<GroupProps> = ({
               {group.posts.length === 0 ? (
                 <NoPosts>
                   <Alert severity="info">
-                    <AlertTitle>{groupTranslations.emptyGroupTitle}</AlertTitle>
-                    {groupTranslations.emptyGroupContent}
+                    <AlertTitle>{t('Group.emptyGroupTitle')}</AlertTitle>
+                    {t('Group.emptyGroupContent')}
                   </Alert>
                 </NoPosts>
               ) : null}
@@ -105,7 +105,7 @@ const Group: React.FC<GroupProps> = ({
       )}
     </Droppable>
   );
-};
+}
 
 const GroupContainer = styled.div<{ draggingOver: boolean }>`
   position: relative;
@@ -145,5 +145,3 @@ const NoPosts = styled.div`
   color: grey;
   margin: 30px;
 `;
-
-export default Group;

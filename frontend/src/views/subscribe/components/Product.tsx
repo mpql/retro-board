@@ -2,13 +2,14 @@ import styled from '@emotion/styled';
 import { colors } from '@mui/material';
 import Paper from '@mui/material/Paper';
 import { useCallback } from 'react';
-import { Product, Currency } from '@retrospected/common';
-import useTranslations from '../../../translations';
+import { Product, Currency } from 'common';
+import { useTranslation } from 'react-i18next';
 
 interface ProductDisplayProps {
   product: Product;
   currency: Currency;
   selected: boolean;
+  yearly: boolean;
   onSelect: (product: Product) => void;
 }
 
@@ -16,36 +17,44 @@ function ProductDisplay({
   product,
   selected,
   currency,
+  yearly,
   onSelect,
 }: ProductDisplayProps) {
-  const { Products: translations, SubscribeModal: subscribeTranslations } =
-    useTranslations();
+  const { t } = useTranslation();
+
   const handleOrder = useCallback(() => {
     onSelect(product);
   }, [onSelect, product]);
+
+  const price =
+    yearly && product.recurring
+      ? (product[currency] / 100) * 11
+      : product[currency] / 100;
 
   return (
     <Container onClick={handleOrder} selected={selected}>
       <Paper elevation={selected ? 24 : 2}>
         <Header>{product.name}</Header>
-        <Description>{translations[product.plan]}</Description>
+        <Description>{t(`Products.${product.plan}`)}</Description>
         <Seats>
           {product.seats
-            ? translations.users!(product.seats)
-            : `${translations.unlimited_seats} 🎉`}
+            ? t('Products.users', { users: product.seats })
+            : `${t('Products.unlimited_seats')} 🎉`}
         </Seats>
 
         <Total>
-          {(product[currency] / 100).toFixed(2)} {currency.toUpperCase()}
+          {price.toFixed(2)} {currency.toUpperCase()}
           {product.recurring ? (
-            <PerMonth>/ {translations.month}</PerMonth>
+            <PerMonth>
+              / {yearly ? t('Products.year') : t('Products.month')}
+            </PerMonth>
           ) : null}
         </Total>
         <PickMe>
           <PickMeButton>
             {product.recurring
-              ? subscribeTranslations.subscribeButton
-              : subscribeTranslations.payButton}
+              ? t('SubscribeModal.subscribeButton')
+              : t('SubscribeModal.payButton')}
           </PickMeButton>
         </PickMe>
       </Paper>

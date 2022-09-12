@@ -1,9 +1,8 @@
 import express from 'express';
 import * as socketIo from 'socket.io';
 import { createAdapter } from 'socket.io-redis';
-import redis from 'redis';
+import { createClient } from 'redis';
 import connectRedis from 'connect-redis';
-import csurf from 'csurf';
 import http from 'http';
 import chalk from 'chalk';
 import db from './db';
@@ -37,7 +36,9 @@ import {
   ResetChangePasswordPayload,
   CreateSessionPayload,
   SelfHostedCheckPayload,
-} from '@retrospected/common';
+  DeleteAccountPayload,
+  ChangeUserNamePayload,
+} from './common';
 import registerPasswordUser from './auth/register/register-user';
 import { sendVerificationEmail, sendResetPassword } from './email/emailSender';
 import { v4 } from 'uuid';
@@ -60,8 +61,10 @@ import { fetchLicence, validateLicence } from './db/actions/licences';
 import { hasField } from './security/payload-checker';
 import mung from 'express-mung';
 import { QueryFailedError } from 'typeorm';
+import { deleteAccount } from './db/actions/delete';
 
 const realIpHeader = 'X-Forwarded-For';
+const sessionSecret = `${config.SESSION_SECRET!}-4.11.5`; // Increment to force re-auth
 
 isLicenced().then((hasLicence) => {
   if (!hasLicence) {
@@ -126,9 +129,6 @@ const heavyLoadLimiter = rateLimit({
   },
 });
 
-// CSRF Protection
-const csrfProtection = csurf();
-
 // Sentry
 setupSentryRequestHandler(app);
 
@@ -155,18 +155,18 @@ const io = new socketIo.Server(httpServer, {
 
 if (config.REDIS_ENABLED) {
   const RedisStore = connectRedis(session);
-  const redisClient = redis.createClient({
+  const redisClient = createClient({
     host: config.REDIS_HOST,
     port: config.REDIS_PORT,
   });
 
   sessionMiddleware = session({
-    secret: `${config.SESSION_SECRET!}-6`, // Increment to force re-auth
+    secret: sessionSecret,
     resave: true,
     saveUninitialized: true,
     store: new RedisStore({ client: redisClient }),
     cookie: {
-      secure: false,
+      secure: config.SECURE_COOKIES,
     },
   });
 
@@ -183,11 +183,11 @@ if (config.REDIS_ENABLED) {
   );
 } else {
   sessionMiddleware = session({
-    secret: `${config.SESSION_SECRET!}-9`, // Increment to force re-auth
+    secret: sessionSecret,
     resave: true,
     saveUninitialized: true,
     cookie: {
-      secure: false,
+      secure: config.SECURE_COOKIES,
     },
   });
 }
@@ -216,10 +216,6 @@ if (process.env.NODE_ENV !== 'production') {
     })
   );
 }
-
-app.get('/api/csrf', csrfProtection, (req, res) => {
-  res.json({ token: req.csrfToken() });
-});
 
 app.get('/api/ping', (req, res) => {
   res.send('pong');
@@ -254,36 +250,31 @@ db().then(() => {
   app.use('/api/slack', slackRouter());
 
   // Create session
-  app.post(
-    '/api/create',
-    csrfProtection,
-    heavyLoadLimiter,
-    async (req, res) => {
-      const identity = await getIdentityFromRequest(req);
-      const payload: CreateSessionPayload = req.body;
-      setScope(async (scope) => {
-        if (identity) {
-          try {
-            const session = await createSession(
-              identity.user,
-              payload.encryptedCheck
-            );
-            res.status(200).send(session);
-          } catch (err: unknown) {
-            if (err instanceof QueryFailedError) {
-              reportQueryError(scope, err);
-            }
-            res.status(500).send();
-            throw err;
+  app.post('/api/create', heavyLoadLimiter, async (req, res) => {
+    const identity = await getIdentityFromRequest(req);
+    const payload: CreateSessionPayload = req.body;
+    setScope(async (scope) => {
+      if (identity) {
+        try {
+          const session = await createSession(
+            identity.user,
+            payload.encryptedCheck
+          );
+          res.status(200).send(session);
+        } catch (err: unknown) {
+          if (err instanceof QueryFailedError) {
+            reportQueryError(scope, err);
           }
-        } else {
-          res
-            .status(401)
-            .send('You must be logged in in order to create a session');
+          res.status(500).send();
+          throw err;
         }
-      });
-    }
-  );
+      } else {
+        res
+          .status(401)
+          .send('You must be logged in in order to create a session');
+      }
+    });
+  });
 
   app.post('/api/logout', async (req, res, next) => {
     req.logout();
@@ -299,6 +290,37 @@ db().then(() => {
     const user = await getUserViewFromRequest(req);
     if (user) {
       res.status(200).send(user.toJson());
+    } else {
+      res.status(401).send('Not logged in');
+    }
+  });
+
+  app.post('/api/me/username', async (req, res) => {
+    const user = await getUserViewFromRequest(req);
+    if (!user) {
+      return res.status(401).send('Please login');
+    }
+    const payload = req.body as ChangeUserNamePayload;
+    const success = await updateUser(user.id, { name: payload.name });
+    if (success) {
+      const updated = await getUserView(user.identityId);
+      if (updated) {
+        return res.send(updated.toJson());
+      }
+    }
+    return res
+      .status(500)
+      .send('Something went wrong while updating the user name');
+  });
+
+  app.delete('/api/me', heavyLoadLimiter, async (req, res) => {
+    const user = await getUserViewFromRequest(req);
+    if (user) {
+      const result = await deleteAccount(
+        user,
+        req.body as DeleteAccountPayload
+      );
+      res.status(200).send(result);
     } else {
       res.status(401).send('Not logged in');
     }
@@ -323,27 +345,22 @@ db().then(() => {
     }
   });
 
-  app.delete(
-    '/api/session/:sessionId',
-    csrfProtection,
-    heavyLoadLimiter,
-    async (req, res) => {
-      const sessionId = req.params.sessionId;
-      const identity = await getIdentityFromRequest(req);
-      if (identity) {
-        const success = await deleteSessions(identity.id, sessionId);
-        if (success) {
-          res.status(200).send();
-        } else {
-          res.status(403).send();
-        }
+  app.delete('/api/session/:sessionId', heavyLoadLimiter, async (req, res) => {
+    const sessionId = req.params.sessionId;
+    const identity = await getIdentityFromRequest(req);
+    if (identity) {
+      const success = await deleteSessions(identity.id, sessionId);
+      if (success) {
+        res.status(200).send();
       } else {
         res.status(403).send();
       }
+    } else {
+      res.status(403).send();
     }
-  );
+  });
 
-  app.post('/api/me/language', csrfProtection, async (req, res) => {
+  app.post('/api/me/language', async (req, res) => {
     const user = await getUserViewFromRequest(req);
     if (user) {
       await updateUser(user.id, {
@@ -380,6 +397,10 @@ db().then(() => {
       res.status(500).send('You are already logged in');
       return;
     }
+    if (config.DISABLE_PASSWORD_REGISTRATION) {
+      res.status(403).send('Password accounts registration is disabled.');
+      return;
+    }
     const registerPayload = req.body as RegisterPayload;
     if (
       (await getIdentityByUsername('password', registerPayload.username)) !==
@@ -399,7 +420,8 @@ db().then(() => {
           identity.emailVerification!
         );
       } else {
-        req.logIn(identity.toIds(), (err) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        req.logIn(identity.toIds(), (err: any) => {
           if (err) {
             console.log('Cannot login Error: ', err);
             res.status(500).send('Cannot login');
@@ -410,6 +432,63 @@ db().then(() => {
       if (userView) {
         res.status(200).send({
           loggedIn: !identity.emailVerification,
+          user: userView.toJson(),
+        });
+      } else {
+        res.status(500).send();
+      }
+    }
+  });
+
+  app.delete('/api/user/:identityId', heavyLoadLimiter, async (req, res) => {
+    const user = await getUserViewFromRequest(req);
+    if (!user || user.email !== config.SELF_HOSTED_ADMIN) {
+      res
+        .status(403)
+        .send('Deleting a user is only allowed for the self-hosted admin.');
+      return;
+    }
+    const userToDelete = await getUserView(req.params.identityId);
+    if (userToDelete) {
+      const result = await deleteAccount(
+        userToDelete,
+        req.body as DeleteAccountPayload
+      );
+      res.status(200).send(result);
+    } else {
+      res.status(404).send('User not found');
+    }
+  });
+
+  app.post('/api/user', heavyLoadLimiter, async (req, res) => {
+    const user = await getUserViewFromRequest(req);
+    if (!user || user.email !== config.SELF_HOSTED_ADMIN) {
+      res
+        .status(403)
+        .send('Adding a user is only allowed for the self-hosted admin.');
+      return;
+    }
+    if (config.DISABLE_PASSWORD_REGISTRATION) {
+      res.status(403).send('Password accounts registration is disabled.');
+      return;
+    }
+
+    const registerPayload = req.body as RegisterPayload;
+    if (
+      (await getIdentityByUsername('password', registerPayload.username)) !==
+      null
+    ) {
+      res.status(403).send('User already exists');
+      return;
+    }
+    const identity = await registerPasswordUser(registerPayload, true);
+    if (!identity) {
+      res.status(500).send();
+    } else {
+      const userView = await getUserView(identity.id);
+      if (userView) {
+        res.status(200).send({
+          loggedIn: false,
           user: userView.toJson(),
         });
       } else {
@@ -432,7 +511,8 @@ db().then(() => {
       const updatedUser = await updateIdentity(identity.id, {
         emailVerification: null,
       });
-      req.logIn(identity.toIds(), (err) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      req.logIn(identity.toIds(), (err: any) => {
         if (err) {
           console.log('Cannot login Error: ', err);
           res.status(500).send('Cannot login');
@@ -478,7 +558,8 @@ db().then(() => {
         emailVerification: null,
         password: hashedPassword,
       });
-      req.logIn(identity.toIds(), (err) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      req.logIn(identity.toIds(), (err: any) => {
         if (err) {
           console.log('Cannot login Error: ', err);
           res.status(500).send('Cannot login');
@@ -529,6 +610,15 @@ db().then(() => {
       res.status(500).send('Something went wrong');
     }
   });
+
+  // app.get('/api/test', async (req, res) => {
+  //   await sendSelfHostWelcome(
+  //     'antoine@jaussoin.com',
+  //     'Antoine J',
+  //     'BLAH-BLAH-BLAH'
+  //   );
+  //   res.send('done');
+  // });
 
   setupSentryErrorHandler(app);
 });

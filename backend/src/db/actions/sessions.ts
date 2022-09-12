@@ -15,7 +15,7 @@ import {
   SessionMetadata,
   AccessErrorType,
   FullUser,
-} from '@retrospected/common';
+} from '../../common';
 import shortId from 'shortid';
 import { v4 } from 'uuid';
 import {
@@ -30,6 +30,8 @@ import { transaction } from './transaction';
 import { EntityManager, In } from 'typeorm';
 import { getUserViewInner, isUserPro } from './users';
 import { uniq } from 'lodash';
+import MessageRepository from '../repositories/MessageRepository';
+import MessageEntity from '../entities/Message';
 
 export async function createSessionFromSlack(
   slackUserId: string,
@@ -159,6 +161,7 @@ export async function getSession(sessionId: string): Promise<Session | null> {
       manager.getCustomRepository(PostGroupRepository);
     const sessionRepository = manager.getCustomRepository(SessionRepository);
     const columnRepository = manager.getCustomRepository(ColumnRepository);
+    const messageRepository = manager.getCustomRepository(MessageRepository);
 
     const session = await sessionRepository.findOne({ id: sessionId });
     if (session) {
@@ -174,11 +177,16 @@ export async function getSession(sessionId: string): Promise<Session | null> {
         where: { session },
         order: { index: 'ASC' },
       })) as ColumnDefinitionEntity[];
+      const messages = (await messageRepository.find({
+        where: { session },
+        order: { created: 'DESC' },
+      })) as MessageEntity[];
       return {
         ...session.toJson(),
         columns: columns.map((c) => c.toJson()),
         posts: posts.map((p) => p.toJson()),
         groups: groups.map((g) => g.toJson()),
+        messages: messages.map((m) => m.toJson()),
       };
     } else {
       return null;
@@ -218,24 +226,35 @@ export async function deleteSessions(
       );
       return false;
     }
-    await sessionRepository.query(
-      `delete from visitors where "sessionsId" = $1;`,
-      [sessionId]
-    );
-    await sessionRepository.query(`delete from posts where "sessionId" = $1;`, [
-      sessionId,
-    ]);
-    await sessionRepository.query(
-      `delete from columns where "sessionId" = $1;`,
-      [sessionId]
-    );
-    await sessionRepository.query(
-      `delete from groups where "sessionId" = $1;`,
-      [sessionId]
-    );
-    await sessionRepository.query(`delete from sessions where id = $1;`, [
-      sessionId,
-    ]);
+
+    try {
+      await sessionRepository.query(
+        `delete from messages where session_id = $1;`,
+        [sessionId]
+      );
+      await sessionRepository.query(
+        `delete from visitors where sessions_id = $1;`,
+        [sessionId]
+      );
+      await sessionRepository.query(
+        `delete from posts where session_id = $1;`,
+        [sessionId]
+      );
+      await sessionRepository.query(
+        `delete from columns where session_id = $1;`,
+        [sessionId]
+      );
+      await sessionRepository.query(
+        `delete from groups where session_id = $1;`,
+        [sessionId]
+      );
+      await sessionRepository.query(`delete from sessions where id = $1;`, [
+        sessionId,
+      ]);
+    } catch (err) {
+      console.error('Could not delete session', sessionId, err);
+      return false;
+    }
 
     return true;
   });
@@ -247,8 +266,8 @@ export async function previousSessions(
   return await transaction(async (manager) => {
     const sessionsAsVisitors: { sessionsId: string }[] = await manager.query(
       `
-      select distinct v."sessionsId" from visitors v
-      where v."usersId" = $1
+      select distinct v.sessions_id from visitors v
+      where v.users_id = $1
     `,
       [userId]
     );
@@ -256,7 +275,7 @@ export async function previousSessions(
     const sessionsAsOwner: { id: string }[] = await manager.query(
       `
       select s.id from sessions s
-      where s."createdById" = $1
+      where s.created_by_id = $1
     `,
       [userId]
     );
@@ -436,4 +455,22 @@ export function isAllowed(
   }
 
   return { allowed: true };
+}
+
+export async function toggleReady(
+  sessionId: string,
+  userId: string
+): Promise<boolean> {
+  return await transaction(async (manager) => {
+    const sessionRepository = manager.getCustomRepository(SessionRepository);
+    const session = await sessionRepository.findOne(sessionId);
+    if (!session) {
+      return false;
+    }
+    session.ready = session.ready.includes(userId)
+      ? session.ready.filter((id) => id !== userId)
+      : [...session.ready, userId];
+    await sessionRepository.save(session);
+    return session.ready.includes(userId);
+  });
 }

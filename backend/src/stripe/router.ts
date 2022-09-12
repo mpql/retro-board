@@ -1,9 +1,5 @@
 import express, { Router } from 'express';
-import {
-  CreateSubscriptionPayload,
-  Product,
-  StripeLocales,
-} from '@retrospected/common';
+import { CreateSubscriptionPayload, Product, StripeLocales } from '../common';
 import config from '../config';
 import Stripe from 'stripe';
 import { UserIdentityEntity } from '../db/entities';
@@ -24,14 +20,10 @@ import {
   saveSubscription,
   startTrial,
 } from '../db/actions/subscriptions';
-import csurf from 'csurf';
 
 const stripe = new Stripe(config.STRIPE_SECRET, {
   apiVersion: '2020-08-27',
 } as Stripe.StripeConfig);
-
-// CSRF Protection
-const csrfProtection = csurf();
 
 function stripeRouter(): Router {
   const router = express.Router();
@@ -181,8 +173,9 @@ function stripeRouter(): Router {
     res.sendStatus(200);
   });
 
-  router.post('/create-checkout-session', csrfProtection, async (req, res) => {
+  router.post('/create-checkout-session', async (req, res) => {
     const payload = req.body as CreateSubscriptionPayload;
+    const { yearly, ...actualPayload } = payload;
     const identity = await getIdentityFromRequest(req);
     const product = getProduct(payload.plan);
 
@@ -198,7 +191,7 @@ function stripeRouter(): Router {
           client_reference_id: identity.user.id,
           customer: customerId,
           metadata: {
-            ...payload,
+            ...actualPayload,
           },
           line_items: [
             {
@@ -207,10 +200,10 @@ function stripeRouter(): Router {
                 product: product.productId,
                 currency: payload.currency,
                 recurring: {
-                  interval: 'month',
+                  interval: yearly ? 'year' : 'month',
                   interval_count: 1,
                 },
-                unit_amount: product[payload.currency],
+                unit_amount: product[payload.currency] * (yearly ? 11 : 1),
               },
             },
           ],
@@ -265,7 +258,7 @@ function stripeRouter(): Router {
     res.status(401).send();
   });
 
-  router.patch('/members', csrfProtection, async (req, res) => {
+  router.patch('/members', async (req, res) => {
     const identity = await getIdentityFromRequest(req);
     if (identity) {
       const subscription = await getActiveSubscription(identity.user.id);
@@ -283,7 +276,7 @@ function stripeRouter(): Router {
     return res.status(200).send(isValidDomain(domain));
   });
 
-  router.post('/start-trial', csrfProtection, async (req, res) => {
+  router.post('/start-trial', async (req, res) => {
     const identity = await getIdentityFromRequest(req);
     if (identity) {
       const updatedUser = await startTrial(identity.user.id);

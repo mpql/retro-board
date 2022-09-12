@@ -3,7 +3,7 @@ import { Strategy as LocalStrategy, IVerifyOptions } from 'passport-local';
 import { Strategy as TwitterStrategy } from 'passport-twitter';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GithubStrategy } from 'passport-github2';
-import { Strategy as SlackStrategy } from 'passport-slack';
+import { Strategy as SlackStrategy } from 'passport-slack-oauth2';
 import { Strategy as MicrosoftStrategy } from 'passport-microsoft';
 import { Strategy as OktaStrategy } from 'passport-okta-oauth20';
 
@@ -15,7 +15,7 @@ import {
   SLACK_CONFIG,
   OKTA_CONFIG,
 } from './config';
-import { AccountType } from '@retrospected/common';
+import { AccountType } from '../common';
 import chalk from 'chalk';
 import loginUser from './logins/password-user';
 import loginAnonymous from './logins/anonymous-user';
@@ -30,6 +30,7 @@ import {
 } from './types';
 import { registerUser, UserRegistration } from '../db/actions/users';
 import { serialiseIds, UserIds, deserialiseIds } from '../utils';
+import config from '../config';
 
 export default () => {
   passport.serializeUser<string>((user, cb) => {
@@ -99,7 +100,6 @@ export default () => {
     return {
       name: profile.displayName,
       type: 'twitter',
-      language: 'en',
       photo: profile.photos?.length ? profile.photos[0].value : undefined,
       username: profile.username,
       email,
@@ -123,7 +123,6 @@ export default () => {
     return {
       name: displayName,
       type: 'github',
-      language: 'en',
       photo: profile.photos?.length ? profile.photos[0].value : undefined,
       username: profile.username,
       email: email.value,
@@ -140,7 +139,6 @@ export default () => {
     return {
       name: profile.displayName,
       type: 'google',
-      language: 'en',
       photo: profile.photos?.length ? profile.photos[0].value : undefined,
       username: email,
       email,
@@ -155,7 +153,6 @@ export default () => {
     return {
       name: profile.displayName,
       type: 'slack',
-      language: 'en',
       photo: profile.user.image_192,
       username: email,
       email,
@@ -171,7 +168,6 @@ export default () => {
     return {
       name: profile.displayName,
       type: 'microsoft',
-      language: 'en',
       username: email,
       email,
     };
@@ -183,7 +179,6 @@ export default () => {
     return {
       name: profile.fullName,
       type: 'okta',
-      language: 'en',
       username: email,
       email,
     };
@@ -242,7 +237,13 @@ export default () => {
           username.startsWith('ANONUSER__') &&
           username.endsWith('__ANONUSER')
         ) {
-          // Anonymouns login
+          // Anonymous login
+
+          // Checking if they are allowed in the first place
+          if (config.DISABLE_ANONYMOUS_LOGIN) {
+            return done('Anonymous accounts are disabled', undefined);
+          }
+
           const actualUsername = username
             .replace('ANONUSER__', '')
             .replace('__ANONUSER', '');
@@ -253,6 +254,12 @@ export default () => {
           );
         } else {
           // Regular account login
+
+          // Checking if they are allowed in the first place
+          if (config.DISABLE_PASSWORD_LOGIN) {
+            return done('Password accounts are disabled', undefined);
+          }
+
           const identity = await loginUser(username, password);
           done(
             !identity ? 'User cannot log in' : null,

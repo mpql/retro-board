@@ -6,21 +6,22 @@ import { useCallback } from 'react';
 import styled from '@emotion/styled';
 import Step from './components/Step';
 import Button from '@mui/material/Button';
-import { colors } from '@mui/material';
-import { Currency, FullUser, Plan } from '@retrospected/common';
+import { colors, FormControlLabel, Switch } from '@mui/material';
+import { Currency, FullUser, Plan } from 'common';
 import CurrencyPicker from './components/CurrencyPicker';
 import ProductPicker from './components/ProductPicker';
 import Input from '../../components/Input';
 import useUser from '../../auth/useUser';
 import { Alert } from '@mui/material';
 import { useEffect } from 'react';
-import useTranslations, { useLanguage } from '../../translations';
+import { useLanguage } from '../../translations';
+import { useTranslation } from 'react-i18next';
 import useProducts from './components/useProducts';
 import { find } from 'lodash';
 
 function guessDomain(user: FullUser): string {
   if (user.email) {
-    const parts = user.email.split('@');
+    const parts = user.email.split('SubscribePage.@');
     if (parts.length === 2) {
       return parts[1];
     }
@@ -39,6 +40,7 @@ function SubscriberPage() {
     : 'team';
   const [currency, setCurrency] = useState<Currency>('eur');
   const [plan, setPlan] = useState<Plan | null>(defaultProduct);
+  const [yearly, setYearly] = useState(false);
   const product = useMemo(() => {
     if (!plan || !products) {
       return null;
@@ -47,8 +49,8 @@ function SubscriberPage() {
   }, [plan, products]);
   const [domain, setDomain] = useState<string>(DEFAULT_DOMAIN);
   const stripe = useStripe();
-  const { SubscribePage: translations } = useTranslations();
-  const language = useLanguage();
+  const { t } = useTranslation();
+  const [language] = useLanguage();
   const needDomain = product && product.plan === 'unlimited';
   const needLogin =
     !!product &&
@@ -91,7 +93,8 @@ function SubscriberPage() {
           product.plan,
           currency,
           language.stripeLocale,
-          !product.seats ? domain : null
+          !product.seats ? domain : null,
+          yearly
         );
 
         if (session && stripe) {
@@ -101,55 +104,69 @@ function SubscriberPage() {
         }
       }
     }
-  }, [stripe, product, currency, domain, language]);
+  }, [stripe, product, currency, domain, language, yearly]);
 
   const validForm = (!needDomain || validDomain) && !!product && !needLogin;
 
-  return (
-    <Container>
-      <Header>Retrospected Pro</Header>
-      {user && user.pro && !user.subscriptionsId ? (
-        <Alert severity="info">{translations.alertAlreadyPro}</Alert>
-      ) : null}
-      {user && user.subscriptionsId && !user.trial ? (
-        <Alert severity="info">{translations.alertAlreadySubscribed}</Alert>
-      ) : null}
-
+  const steps = [
+    (index: number) => (
       <Step
-        index={1}
-        title={translations.plan.title}
-        description={translations.plan.description}
+        index={index}
+        title={t('SubscribePage.plan.title')}
+        description={t('SubscribePage.plan.description')}
       >
         <ProductPicker
           value={plan}
           products={products}
           currency={currency}
+          yearly={yearly}
           onChange={setPlan}
         />
+
+        <FormControlLabel
+          style={{ marginLeft: 16 }}
+          control={
+            <Switch
+              checked={yearly}
+              onChange={(evt) => setYearly(evt.target.checked)}
+              name="yearly"
+              size="medium"
+            />
+          }
+          label={`🎁  ${t('Products.wantToPayYearly')}`}
+        />
       </Step>
-      {needDomain ? (
-        <Step
-          index={2}
-          title={translations.domain.title}
-          description={translations.domain.description}
-        >
-          <Input
-            value={domain}
-            onChangeValue={setDomain}
-            error={!validDomain}
-            helperText={!validDomain ? translations.domain.invalidDomain : null}
-            required
-          />
-        </Step>
-      ) : null}
+    ),
+    needDomain
+      ? (index: number) => (
+          <Step
+            index={index}
+            title={t('SubscribePage.domain.title')}
+            description={t('SubscribePage.domain.description')}
+          >
+            <Input
+              value={domain}
+              onChangeValue={setDomain}
+              error={!validDomain}
+              helperText={
+                !validDomain ? t('SubscribePage.domain.invalidDomain') : null
+              }
+              required
+            />
+          </Step>
+        )
+      : null,
+    (index: number) => (
       <Step
-        index={needDomain ? 3 : 2}
-        title={translations.currency.title}
-        description={translations.currency.description}
+        index={index}
+        title={t('SubscribePage.currency.title')}
+        description={t('SubscribePage.currency.description')}
       >
         {user && !!user.currency ? (
           <Alert severity="warning" style={{ marginBottom: 10 }}>
-            {translations.currency.warning!(currency.toUpperCase())}
+            {t('SubscribePage.currency.warning', {
+              currency: currency.toUpperCase(),
+            })}
           </Alert>
         ) : null}
         <CurrencyPicker
@@ -158,17 +175,18 @@ function SubscriberPage() {
           onChange={setCurrency}
         />
       </Step>
-
+    ),
+    (index: number) => (
       <Step
-        index={needDomain ? 4 : 3}
-        title={`${translations.subscribe.title} ${
+        index={index}
+        title={`${t('SubscribePage.subscribe.title')} ${
           product ? ` - ${product.name}` : ''
         }`}
-        description={translations.subscribe.description}
+        description={t('SubscribePage.subscribe.description')}
       >
         {needLogin ? (
           <Alert severity="info" style={{ marginBottom: 10 }}>
-            {translations.subscribe.cannotRegisterWithAnon}
+            {t('SubscribePage.subscribe.cannotRegisterWithAnon')}
           </Alert>
         ) : null}
         <Button
@@ -177,9 +195,27 @@ function SubscriberPage() {
           color="primary"
           disabled={!validForm}
         >
-          {translations.subscribe.checkout}
+          {t('SubscribePage.subscribe.checkout')}
         </Button>
       </Step>
+    ),
+  ].filter(Boolean) as Array<(index: number) => JSX.Element>;
+
+  return (
+    <Container>
+      <Header>Retrospected Pro</Header>
+      {user && user.pro && !user.subscriptionsId ? (
+        <Alert severity="info">{t('SubscribePage.alertAlreadyPro')}</Alert>
+      ) : null}
+      {user && user.subscriptionsId && !user.trial ? (
+        <Alert severity="info">
+          {t('SubscribePage.alertAlreadySubscribed')}
+        </Alert>
+      ) : null}
+
+      {steps.map((step, index) => {
+        return step(index + 1);
+      })}
     </Container>
   );
 }

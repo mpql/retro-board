@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { PropsWithChildren, useEffect, useState } from 'react';
 import { render, RenderOptions, RenderResult } from '@testing-library/react';
-import { FullUser, Session, defaultOptions } from '@retrospected/common';
+import { FullUser, Session, defaultOptions } from 'common';
 import {
   DragDropContext,
   Droppable,
@@ -17,6 +17,7 @@ export const initialSession: Session = {
   posts: [],
   groups: [],
   columns: [],
+  messages: [],
   encrypted: null,
   locked: false,
   createdBy: {
@@ -27,24 +28,25 @@ export const initialSession: Session = {
   options: {
     ...defaultOptions,
   },
+  ready: [],
 };
 
-export const AllTheProviders: React.FC = ({ children }) => {
+export function AllTheProviders({ children }: PropsWithChildren<{}>) {
   return (
     <RecoilRoot>
       <Inner>{children}</Inner>
     </RecoilRoot>
   );
-};
+}
 
-const Inner: React.FC = ({ children }) => {
+export default function Inner({ children }: PropsWithChildren<{}>) {
   const { receiveBoard } = useSession();
   const [user, setUser] = useState<FullUser | null>({
     id: 'John Doe',
     name: 'John Doe',
     photo: null,
     accountType: 'anonymous',
-    language: 'en',
+    language: 'en-GB',
     username: 'johndoe',
     email: 'john@doe.com',
     pro: false,
@@ -66,7 +68,7 @@ const Inner: React.FC = ({ children }) => {
       name: 'John Doe',
       photo: null,
       accountType: 'anonymous',
-      language: 'en',
+      language: 'en-GB',
       username: 'johndoe',
       email: 'john@doe.com',
       pro: false,
@@ -95,7 +97,7 @@ const Inner: React.FC = ({ children }) => {
       </Droppable>
     </DragDropContext>
   );
-};
+}
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 const customRender = (

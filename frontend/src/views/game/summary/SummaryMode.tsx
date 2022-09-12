@@ -14,15 +14,15 @@ import { colors } from '@mui/material';
 import { Feedback } from '@mui/icons-material';
 import { ColumnContent } from '../types';
 import { Palette } from '../../../Theme';
-import useTranslations from '../../../translations';
+import { useTranslation } from 'react-i18next';
 import { Page } from '../../../components/Page';
 import SpeedDial from './SpeedDial';
 import { useSummary } from './useSummary';
 import { ColumnStats, ColumnStatsItem, ActionItem } from './types';
-import useTranslation from '../../../translations';
 import useCrypto from '../../../crypto/useCrypto';
 import isSearchMatch from '../is-search-match';
 import { Box } from '@mui/system';
+import { usePostUserPermissionsNullable } from '../board/usePostUserPermissions';
 
 interface SummaryModeProps {
   columns: ColumnContent[];
@@ -35,7 +35,8 @@ interface SectionProps {
 }
 
 const Section = ({ stats, search }: SectionProps) => {
-  const { SummaryBoard: translations } = useTranslation();
+  const { t } = useTranslation();
+
   return (
     <Box marginBottom={2} role="list">
       <Card>
@@ -51,7 +52,7 @@ const Section = ({ stats, search }: SectionProps) => {
           {stats.items.length ? (
             <PostsList items={stats.items} search={search} />
           ) : (
-            <Typography variant="body1">{translations.noPosts}</Typography>
+            <Typography variant="body1">{t('SummaryBoard.noPosts')}</Typography>
           )}
         </CardContent>
       </Card>
@@ -120,6 +121,8 @@ interface PostLineProps {
 
 const PostLine = ({ item, search }: PostLineProps) => {
   const { decrypt } = useCrypto();
+  const permissions = usePostUserPermissionsNullable(item.post);
+  const canShowAuthor = permissions && permissions.canShowAuthor;
   const higlighted =
     search &&
     isSearchMatch(
@@ -129,22 +132,39 @@ const PostLine = ({ item, search }: PostLineProps) => {
       false
     );
   return (
-    <Typography component="div">
-      <PostContainer role="listitem">
-        <Score>
-          <PositiveNumber>+{item.likes}</PositiveNumber>&nbsp;
-          <NegativeNumber>-{item.dislikes}</NegativeNumber>
-        </Score>
-        <PostContent
-          aria-label="post content"
-          style={{ fontWeight: higlighted ? 'bold' : 'normal' }}
-        >
-          {decrypt(item.content)}
-        </PostContent>
-      </PostContainer>
-    </Typography>
+    <PostLineContainer>
+      <Typography component="div">
+        <PostContainer role="listitem">
+          <Score>
+            <PositiveNumber>+{item.likes}</PositiveNumber>&nbsp;
+            <NegativeNumber>-{item.dislikes}</NegativeNumber>
+          </Score>
+          <PostContent
+            aria-label="post content"
+            style={{ fontWeight: higlighted ? 'bold' : 'normal' }}
+          >
+            {decrypt(item.content)}
+          </PostContent>
+          {canShowAuthor ? <Author>(by {item.post?.user.name})</Author> : null}
+        </PostContainer>
+      </Typography>
+    </PostLineContainer>
   );
 };
+
+const PostLineContainer = styled.div`
+  :hover {
+    background-color: ${colors.grey[50]};
+  }
+`;
+
+const Author = styled.div`
+  color: ${colors.grey[500]};
+  font-size: 0.7rem;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+`;
 
 const PostContainer = styled.div`
   display: flex;
@@ -173,9 +193,7 @@ interface ActionsListProps {
 
 const ActionsList = ({ actions }: ActionsListProps) => {
   const theme = useTheme();
-  const {
-    Actions: { summaryTitle },
-  } = useTranslations();
+  const { t } = useTranslation();
   const { decrypt } = useCrypto();
   return (
     <Grid
@@ -190,7 +208,7 @@ const ActionsList = ({ actions }: ActionsListProps) => {
           <CardHeader
             title={
               <Typography variant="h6" style={{ fontWeight: 300 }}>
-                {summaryTitle}
+                {t('Actions.summaryTitle')}
               </Typography>
             }
             style={{
@@ -240,9 +258,9 @@ const SummaryMode = ({ columns, search }: SummaryModeProps) => {
 
 const SpeedDialContainer = styled.div`
   position: fixed;
-  bottom: 20px;
+  bottom: 85px;
   right: 20px;
-  z-index: 4;
+  z-index: 3;
 `;
 
 export default SummaryMode;

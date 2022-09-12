@@ -10,11 +10,29 @@ setup:
 	
 build:
 	docker buildx inspect --bootstrap
-	docker buildx build --cache-from=antoinejaussoin/maintenance:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./maintenance/Dockerfile -t antoinejaussoin/maintenance:${PACKAGE_VERSION} ./maintenance
-	docker buildx build --cache-from=antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./backend/Dockerfile -t antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} .
-	docker buildx build --cache-from=antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./frontend/Dockerfile -t antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} .
+	docker buildx build --cache-from=retrospected/maintenance:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./maintenance/Dockerfile -t retrospected/maintenance:${PACKAGE_VERSION} ./maintenance
+	docker buildx build --cache-from=retrospected/backend:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./backend/Dockerfile -t retrospected/backend:${PACKAGE_VERSION} ./backend
+	docker buildx build --cache-from=retrospected/frontend:${PACKAGE_VERSION} --pull --platform ${TARGET_ARCHS} -f ./frontend/Dockerfile -t retrospected/frontend:${PACKAGE_VERSION} ./frontend
 
 single-build:
-	docker build -f ./maintenance/Dockerfile -t antoinejaussoin/maintenance:${PACKAGE_VERSION} ./maintenance
-	docker build -f ./backend/Dockerfile -t antoinejaussoin/retro-board-backend:${PACKAGE_VERSION} .
-	docker build -f ./frontend/Dockerfile -t antoinejaussoin/retro-board-frontend:${PACKAGE_VERSION} .
+	docker build -f ./maintenance/Dockerfile -t retrospected/maintenance:${PACKAGE_VERSION} ./maintenance
+	docker build -f ./backend/Dockerfile -t retrospected/backend:${PACKAGE_VERSION} ./backend
+	docker build -f ./frontend/Dockerfile -t retrospected/frontend:${PACKAGE_VERSION} ./frontend
+
+local:
+	docker build -f ./backend/Dockerfile -t retrospected/backend:local ./backend
+	docker build -f ./frontend/Dockerfile -t retrospected/frontend:local ./frontend
+
+install-trivy:
+	brew install trivy
+
+trivy:
+	docker build -f ./backend/Dockerfile -t retrospected/backend:trivy ./backend
+	docker build -f ./frontend/Dockerfile -t retrospected/frontend:trivy ./frontend
+	trivy retrospected/backend:trivy
+	trivy retrospected/frontend:trivy
+
+translate:
+	crowdin push sources
+	crowdin pre-translate --method=mt --engine-id=316468 -l=fr -l=nl -l=ar -l=de  -l=it -l=ja -l=uk
+	crowdin download

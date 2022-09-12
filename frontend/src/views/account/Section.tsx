@@ -1,21 +1,28 @@
 import { colors } from '@mui/material';
 import styled from '@emotion/styled';
+import { PropsWithChildren } from 'react';
 
 interface SectionProps {
   title?: string;
+  danger?: boolean;
 }
 
-const Section: React.FC<SectionProps> = ({ title, children }) => {
+export default function Section({
+  title,
+  danger,
+  children,
+}: PropsWithChildren<SectionProps>) {
   return (
-    <Container>
+    <Container danger={!!danger}>
       <Title>{title}</Title>
       <Content>{children}</Content>
     </Container>
   );
-};
+}
 
-const Container = styled.section`
-  border: 1px solid ${colors.grey[200]};
+const Container = styled.section<{ danger: boolean }>`
+  border: 1px solid
+    ${(props) => (props.danger ? colors.red[500] : colors.grey[200])};
   border-radius: 10px;
   margin: 10px;
   padding: 20px;
@@ -24,6 +31,10 @@ const Container = styled.section`
 
   @media screen and (max-width: 450px) {
     padding: 5px;
+  }
+
+  header {
+    color: ${(props) => (props.danger ? colors.red[500] : 'inherit')};
   }
 `;
 
@@ -39,5 +50,3 @@ const Title = styled.header`
 `;
 
 const Content = styled.div``;
-
-export default Section;

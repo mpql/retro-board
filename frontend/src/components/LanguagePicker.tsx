@@ -4,14 +4,19 @@ import Select from '@mui/material/Select';
 import { SelectChangeEvent } from '@mui/material';
 import MenuItem from '@mui/material/MenuItem';
 import { languages } from '../translations';
-import 'flag-icon-css/css/flag-icon.min.css';
+import { Flag } from './Flag';
 
 interface LanguagePickerProps {
   value: string;
+  variant?: 'outlined' | 'standard' | 'filled';
   onChange: (value: string) => void;
 }
 
-const LanguagePicker = ({ value, onChange }: LanguagePickerProps) => {
+const LanguagePicker = ({
+  value,
+  variant = 'standard',
+  onChange,
+}: LanguagePickerProps) => {
   const handleSelect = useCallback(
     (event: SelectChangeEvent<unknown>) => {
       const language = event.target.value as string;
@@ -20,13 +25,20 @@ const LanguagePicker = ({ value, onChange }: LanguagePickerProps) => {
     [onChange]
   );
   return (
-    <StyledSelect value={value} onChange={handleSelect} variant="standard">
+    <StyledSelect
+      value={value}
+      onChange={handleSelect}
+      variant={variant}
+      data-cy="language-picker"
+    >
       {languages.map((language) => (
-        <MenuItem value={language.value} key={language.value}>
+        <MenuItem
+          value={language.locale}
+          key={language.locale}
+          data-cy={`language-picker-item-${language.locale}`}
+        >
           <LanguageItem>
-            <Flag className={`flag-icon flag-icon-${language.iso}`}>
-              <FlagOverlay />
-            </Flag>
+            <Flag country={language.iso} />
             <Names>
               <Name>{language.name}</Name>
               <EnglishName>{language.englishName}</EnglishName>
@@ -47,34 +59,15 @@ const LanguageItem = styled.div`
   align-items: center;
 `;
 
-const Flag = styled.div`
-  font-size: 32px;
-  margin-left: 10px;
-  height: 32px;
-  margin-right: 8px;
-  position: relative;
-`;
-
-const FlagOverlay = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 32px;
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
-`;
 const Names = styled.div`
   margin-left: 5px;
   display: flex;
   flex-direction: column;
   font-size: 0.8em;
 `;
+
 const Name = styled.div``;
+
 const EnglishName = styled.div`
   color: grey;
 `;

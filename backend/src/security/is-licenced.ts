@@ -1,8 +1,8 @@
-import { SelfHostedCheckPayload } from '@retrospected/common';
+import { SelfHostedCheckPayload } from '../common';
 import config from '../config';
 import fetch from 'node-fetch';
 import wait, { comparePassword, decrypt } from '../utils';
-import { LicenceMetadata } from 'src/types';
+import { LicenceMetadata } from './../types';
 
 let licenced: LicenceMetadata | null = null;
 
@@ -15,6 +15,23 @@ const hardcodedLicences: HardcodedLicence[] = [
   {
     hash: '$2a$10$kt4DnxKZEwvoh052JFygru7iLiIrTzSJngcJlaYkWm.tlNzRJx/Di',
     encryptedOwner: 'U2FsdGVkX18/e8sfZ3bpjz3pLQkCxloH8nuniFdU+vo=',
+  },
+  {
+    // Parson
+    hash: '$2a$10$33O/3uuETs0hKNIRWQzH5uQ8LgvZKhZumDcfy.izLLIzwqXmHRFu2',
+    encryptedOwner:
+      'U2FsdGVkX1/weIyFN+TJEPkM0YF08D5CSD0vgrDOnouEveyXG2K/TurX63pBrhuR',
+  },
+  {
+    // Retrospected.com
+    hash: '$2a$10$hLlxhJ8yDp1lQJtTLePJr.SDuWFHSX4Kat8NHUgqPoKgRGLbZWy26',
+    encryptedOwner: 'U2FsdGVkX19b7JIgy/QrMncC1JjoVmBJ5EUo4AcGIkA=',
+  },
+  {
+    // Mindef
+    hash: '$2a$10$y3ZX441HpKqjMfemCB285O0.JzuaO5wGBPLtS5vJTQ6T352E9O0bC',
+    encryptedOwner:
+      'U2FsdGVkX1+xZTCbhmVh4jBPCZfiJ5kipc0Yeo8bm/8CjEoLG8VK/Z1mwTEKxKlR',
   },
 ];
 
@@ -48,18 +65,11 @@ async function checkHardcodedLicence(
   return null;
 }
 
-// async function buildHardcodedLicence(
-//   licenceKey: string,
-//   company: string
-// ): Promise<void> {
-//   console.log('Building hardcoded licence for: ', licenceKey);
-//   const hash = await hashPassword(licenceKey);
-//   console.log('Hash: ', hash);
-//   console.log('Encrypted company name: ', encrypt(company, licenceKey));
-// }
-
 async function isLicencedBase(): Promise<LicenceMetadata | null> {
   const licenceKey = config.LICENCE_KEY;
+
+  // Checking hardcoded licence as a last resort
+  const hardcodedLicence = await checkHardcodedLicence(licenceKey);
 
   const payload: SelfHostedCheckPayload = { key: licenceKey };
   try {
@@ -77,22 +87,32 @@ async function isLicencedBase(): Promise<LicenceMetadata | null> {
       const result = (await response.json()) as LicenceMetadata;
       return result;
     } else {
-      console.error(
-        'Could not contact the licence server. If you have a valid licence, please contact support@retrospected.com for support.'
-      );
-      console.log(response.status, response.statusText);
+      if (hardcodedLicence) {
+        return hardcodedLicence;
+      }
+      if (response.status === 403) {
+        console.error(
+          'The licence key is not recognised. If you have a valid licence, please contact support@retrospected.com for support.'
+        );
+      } else {
+        console.error(
+          'Could not contact the licence server. If you have a valid licence, please contact support@retrospected.com for support.'
+        );
+        console.log(response.status, response.statusText);
+      }
     }
   } catch (err) {
+    if (hardcodedLicence) {
+      return hardcodedLicence;
+    }
     console.error(
       'Could not contact the licence server. If you have a valid licence, please contact support@retrospected.com for support.'
     );
     console.log(err);
   }
 
-  // Checking hardcoded licence as a last resort
-  const hardcoded = await checkHardcodedLicence(licenceKey);
-  if (hardcoded) {
-    return hardcoded;
+  if (hardcodedLicence) {
+    return hardcodedLicence;
   }
 
   return null;

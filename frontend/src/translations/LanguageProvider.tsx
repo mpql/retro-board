@@ -1,49 +1,16 @@
-import { useState, useEffect, useCallback, useContext } from 'react';
-import Context from './Context';
-import UserContext from '../auth/Context';
-import { TrackingEvent } from '@retrospected/common';
-import { updateLanguage } from '../api';
-import { getItem, setItem } from '../utils/localStorage';
-import { trackEvent } from '../track';
+import { useEffect, PropsWithChildren } from 'react';
 import useUser from '../auth/useUser';
-import config from '../utils/getConfig';
+import { useTranslation } from 'react-i18next';
 
-const LanguageProvider: React.FC = ({ children }) => {
-  const [language, setLanguage] = useState(config.defaultLanguage);
+export default function LanguageProvider({ children }: PropsWithChildren<{}>) {
   const user = useUser();
-  const { setUser } = useContext(UserContext);
-
-  const handleChangeLanguage = useCallback(
-    async (language: string) => {
-      setLanguage(language);
-      setItem('language', language);
-      const updatedUser = await updateLanguage(language);
-      if (updatedUser) {
-        setUser(updatedUser);
-      }
-    },
-    [setUser]
-  );
-
-  useEffect(() => {
-    const language = getItem('language');
-    if (language) {
-      trackEvent(`language/change/${language}` as TrackingEvent);
-      setLanguage(language);
-    }
-  }, []);
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     if (user) {
-      setLanguage(user.language);
+      i18n.changeLanguage(user.language || 'en-GB');
     }
-  }, [user]);
+  }, [user, i18n]);
 
-  return (
-    <Context.Provider value={{ language, setLanguage: handleChangeLanguage }}>
-      {children}
-    </Context.Provider>
-  );
-};
-
-export default LanguageProvider;
+  return <>{children}</>;
+}

@@ -47,7 +47,7 @@ services:
         max-size: '50m'
 
   backend:
-    image: antoinejaussoin/retro-board-backend:latest
+    image: retrospected/backend:latest
     depends_on:
       - redis
     environment:
@@ -66,6 +66,10 @@ services:
       REDIS_HOST: redis # Must be the name of the Redis service above
       SENTRY_URL: '' # Optional, Sentry URL (https://1234567890abcdef12345@sentry.io/1234567)
       BASE_URL: http://localhost:80 # This must be the URL of the frontend app once deployed. Only useful if you need OAuth, SendGrid or Stripe
+      SECURE_COOKIES: 'false' # You can set this to true if you are using HTTPS. This is more secure.
+      DISABLE_ANONYMOUS_LOGIN: 'false' # Set to true to disable anonymous accounts
+      DISABLE_PASSWORD_LOGIN: 'false' # Set to true to disable password accounts (email accounts).
+      DISABLE_PASSWORD_REGISTRATION: 'false' # Set to true to disable password accounts registration (but not login!)
 
       # -- OAuth: Set these to enable OAuth authentication for one or more provider. This is optional. --
       TWITTER_KEY:
@@ -91,9 +95,13 @@ services:
       SQL_LOG: 'false' # Whether to log SQL queries in the console
       SENDGRID_API_KEY: # Used for Sendgrid email reminders
       SENDGRID_SENDER: # Email to be used as the sender for emails
-      SENDGRID_VERIFICATION_EMAIL_TID: # Verification email template ID
-      SENDGRID_RESET_PASSWORD_TID: # Reset password email template ID
-      SENDGRID_SELF_HOST_EMAIL_TID: # Self host welcome email template ID
+      MAIL_SMTP_HOST: # SMTP server host for sending emails via SMTP (instead of SendGrid)
+      MAIL_PORT: 465 # SMTP port (usually 465 for secure SMTP)
+      MAIL_SECURE: true # If SMTP is using encryption, usually via port 465, set this to true
+      MAIL_USER: # SMTP username (or email)
+      MAIL_PASSWORD: # SMTP user password
+      MAIL_SENDER: # SMTP sender email (usually matches MAIL_USER)
+      MAIL_ALLOW_SELF_SIGNED_CERTS: 'false' # Only set to true if you want to (unsafely) allow an SMTP server with self-signed certificates
       STRIPE_SECRET: # Stripe payment account secret
       STRIPE_WEBHOOK_SECRET: # Stripe webhook secret
       STRIPE_TEAM_PRODUCT: # Stripe product information
@@ -117,7 +125,7 @@ services:
         max-size: '50m'
 
   frontend:
-    image: antoinejaussoin/retro-board-frontend:latest
+    image: retrospected/frontend:latest
     depends_on:
       - backend
     ports:
@@ -127,7 +135,7 @@ services:
       GA_ID: '' # Optional, Google Analytics ID (UA-1234456-7)
       SENTRY_URL: '' # Optional, Sentry URL (https://1234567890abcdef12345@sentry.io/1234567)
       GIPHY_API_KEY: '' # Optional, can be obtained here: https://developers.giphy.com/
-      DEFAULT_LANGUAGE: 'en' # Set the default language for new users
+      DEFAULT_LANGUAGE: 'en-GB' # Set the default language for new users
 
       # -- Do Not Change --
       BACKEND_HOST: backend # This should be the name of the backend service
