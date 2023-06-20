@@ -9,6 +9,11 @@ interface Config {
   VERSION: string;
   MARKETING_ROOT: string;
   AI_FEEDBACK_URL: string;
+  PRIMARY_COLOR: string;
+  SECONDARY_COLOR: string;
+  HEADER_PRIMARY_COLOR: string;
+  HEADER_SECONDARY_COLOR: string;
+  LOGO: string;
 }
 
 const ALL_KEYS: (keyof Config)[] = [
@@ -22,6 +27,11 @@ const ALL_KEYS: (keyof Config)[] = [
   'VERSION',
   'MARKETING_ROOT',
   'AI_FEEDBACK_URL',
+  'PRIMARY_COLOR',
+  'SECONDARY_COLOR',
+  'HEADER_PRIMARY_COLOR',
+  'HEADER_SECONDARY_COLOR',
+  'LOGO',
 ];
 
 declare global {
