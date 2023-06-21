@@ -23,7 +23,8 @@
     "pricing": "Pricing",
     "faq": "FAQ",
     "subscribe": "Subscribe",
-    "login": "Login"
+    "login": "Login",
+    "selfhosting": "Self-Hosting"
   },
   "Clients": {
     "main": "Join the hundreds of companies using Retrospected"
@@ -67,6 +68,7 @@
     "switchToYearly": "Switch to Yearly and get one month free!",
     "switchedToYearly": "Well done, you will get one month free every year",
     "login": "Login Now",
+    "free": "Free",
     "basic": {
       "title": "Basic",
       "price": 0,
@@ -101,7 +103,7 @@
     },
     "hosted": {
       "title": "Self Hosted",
-      "price": 649,
+      "price": 599,
       "plus": "Everything from Unlimited, plus:",
       "features": [
         "User administration tool",
@@ -123,8 +125,8 @@
       "Free updates, forever"
     ],
     "button": {
-      "link": "https://docs.retrospected.com",
-      "label": "Discover our documentation"
+      "link": "/blog/self-hosting",
+      "label": "Learn more"
     }
   },
   "Features": {

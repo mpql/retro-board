@@ -19,6 +19,8 @@ export type BlogMetadata = {
   slug: string;
   file: string;
   lang: string;
+  keywords: string;
+  dropcap: boolean;
 };
 
 export type BlogDocument = BlogMetadata & {
@@ -66,6 +68,7 @@ function getBlogMetadata(filePath: string): BlogMetadata {
     ...data,
     file: basename(filePath),
     lang,
+    dropcap: data.dropcap === 'false' ? false : true,
   } as BlogMetadata;
   return document;
 }
