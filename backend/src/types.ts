@@ -66,6 +66,8 @@ export interface BackendConfig {
   OPEN_AI_API_KEY: string;
   OPEN_AI_FREE_LIMIT: number;
   OPEN_AI_PAID_LIMIT: number;
+  DISABLE_ACCOUNT_DELETION: boolean;
+  DISABLE_SHOW_AUTHOR: boolean;
 }
 
 export type LicenceMetadata = {
