@@ -19,6 +19,7 @@ import { ColumnContent } from '../types';
 import useCrypto from '../../../crypto/useCrypto';
 import useQuota from '../../../hooks/useQuota';
 import useSessionUserPermissions from './useSessionUserPermissions';
+import { useSearch } from '../is-search-match';
 
 interface ColumnProps {
   column: ColumnContent;
@@ -62,6 +63,7 @@ const Column: React.FC<ColumnProps> = ({
   const { encrypt } = useCrypto();
   const permissions = useSessionUserPermissions();
   const { increment } = useQuota();
+  const searchPredicate = useSearch(search);
   const onContentChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => setContent(e.target.value),
     [setContent]
@@ -124,52 +126,57 @@ const Column: React.FC<ColumnProps> = ({
         ) : null}
       </Add>
       <Groups>
-        {groups.map((group) => (
-          <Group
-            key={group.id}
-            group={group}
-            readonly={false}
-            onEditLabel={(label) =>
-              onEditGroup({
-                ...group,
-                label,
-              })
-            }
-            onDelete={() => onDeleteGroup(group)}
-          >
-            {group.posts.map((post, index) => (
-              <PostItem
-                index={index}
-                key={post.id}
-                post={post}
-                search={search}
-                color={color}
-                onLike={() => onLike(post)}
-                onDislike={() => onDislike(post)}
-                onDelete={() => onDelete(post)}
-                onCancelVotes={() => onCancelVotes(post)}
-                onEdit={(content) =>
-                  onEdit({
-                    ...post,
-                    content,
-                  })
-                }
-                onEditAction={(action) =>
-                  onEdit({
-                    ...post,
-                    action,
-                  })
-                }
-                onEditGiphy={(giphy) =>
-                  onEdit({
-                    ...post,
-                    giphy,
-                  })
-                }
-              />
-            ))}
-          </Group>
-        ))}
+        {groups.map((group) => {
+          const posts = group.posts.filter(searchPredicate);
+          if (posts.length === 0) {
+            return null;
+          }
+          return (
+            <Group
+              key={group.id}
+              group={group}
+              readonly={false}
+              onEditLabel={(label) =>
+                onEditGroup({
+                  ...group,
+                  label,
+                })
+              }
+              onDelete={() => onDeleteGroup(group)}
+            >
+              {posts.map((post, index) => (
+                <PostItem
+                  index={index}
+                  key={post.id}
+                  post={post}
+                  color={color}
+                  onLike={() => onLike(post)}
+                  onDislike={() => onDislike(post)}
+                  onDelete={() => onDelete(post)}
+                  onCancelVotes={() => onCancelVotes(post)}
+                  onEdit={(content) =>
+                    onEdit({
+                      ...post,
+                      content,
+                    })
+                  }
+                  onEditAction={(action) =>
+                    onEdit({
+                      ...post,
+                      action,
+                    })
+                  }
+                  onEditGiphy={(giphy) =>
+                    onEdit({
+                      ...post,
+                      giphy,
+                    })
+                  }
+                />
+              ))}
+            </Group>
+          );
+        })}
       </Groups>
       <Droppable
         droppableId={'column#' + column.index}
@@ -186,12 +193,11 @@ const Column: React.FC<ColumnProps> = ({
             draggingOver={dropSnapshot.isDraggingOver}
             draggingColor={column.color}
           >
-            {posts.map((post, index) => (
+            {posts.filter(searchPredicate).map((post, index) => (
               <PostItem
                 index={index}
                 key={post.id}
                 post={post}
-                search={search}
                 color={color}
                 onLike={() => onLike(post)}
                 onDislike={() => onDislike(post)}
