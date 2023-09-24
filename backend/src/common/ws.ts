@@ -1,8 +1,7 @@
 import {
-  ColumnDefinition,
   Post,
   PostGroup,
-  SessionOptions,
+  SessionSettings,
   User,
   VoteExtract,
   VoteType,
@@ -16,10 +15,6 @@ export interface WebsocketMessage<T> {
 
 export interface WsUserData {
   user: User;
-}
-
-export interface WsNameData {
-  name: string;
 }
 
 export interface WsPostUpdatePayload {
@@ -58,9 +53,9 @@ export interface WsDeleteGroupPayload {
   groupId: string;
 }
 
-export interface WsSaveTemplatePayload {
-  columns: ColumnDefinition[];
-  options: SessionOptions;
+export interface WsSaveSessionSettingsPayload {
+  settings: SessionSettings;
+  saveAsTemplate: boolean;
 }
 
 export interface WsUserReadyPayload {
@@ -84,7 +79,8 @@ export type WsErrorType =
   | 'cannot_record_chat_message'
   | 'cannot_cancel_votes'
   | 'unknown_error'
-  | 'action_unauthorised';
+  | 'action_unauthorised'
+  | 'cannot_save_session_settings';
 
 export interface WsErrorPayload {
   type: WsErrorType;

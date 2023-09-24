@@ -67,10 +67,7 @@ function GamePage() {
     onEditPostGroup,
     onLike,
     onCancelVotes,
-    onRenameSession,
-    onEditOptions,
-    onEditColumns,
-    onSaveTemplate,
+    onChangeSession,
     onLockSession,
     onUserReady,
     onTimerStart,
@@ -198,11 +195,8 @@ function GamePage() {
                 onCancelVotes={onCancelVotes}
                 onDeleteGroup={onDeletePostGroup}
                 onEditGroup={onEditPostGroup}
-                onRenameSession={onRenameSession}
-                onEditOptions={onEditOptions}
-                onEditColumns={onEditColumns}
-                onSaveTemplate={onSaveTemplate}
                 onLockSession={onLockSession}
+                onChangeSession={onChangeSession}
               />
             }
           />
@@ -223,7 +217,7 @@ function GamePage() {
             onTimerReset={onTimerReset}
             onTimerStart={onTimerStart}
             onMessage={onChatMessage}
-            onConfigure={onEditOptions}
+            onConfigure={(options) => onChangeSession({ options }, false)}
           />
         </ParticipantContainer>
       </div>

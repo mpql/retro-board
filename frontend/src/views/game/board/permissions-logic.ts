@@ -24,7 +24,9 @@ export function sessionPermissionLogic(
       hasReachedMaxPosts: false,
     };
   }
-  const isOwner = user.id === session.createdBy.id;
+  const isModerator = user.id === session.moderator.id;
+  const isOwner = isModerator || user.id === session.createdBy.id;
+
   const numberOfPosts = session.posts.filter(
     (p) => p.user.id === user.id
   ).length;
@@ -36,11 +38,11 @@ export function sessionPermissionLogic(
   const canCreateGroup =
     canCreatePost &&
     session.options.allowGrouping &&
-    (isOwner || !session.options.restrictGroupingToOwner);
+    (isOwner || !session.options.restrictGroupingToModerator);
   const canEditTitle =
-    !readonly && (isOwner || !session.options.restrictTitleEditToOwner);
+    !readonly && (isOwner || !session.options.restrictTitleEditToModerator);
   const canReorderPosts =
-    !readonly && (isOwner || !session.options.restrictReorderingToOwner);
+    !readonly && (isOwner || !session.options.restrictReorderingToModerator);
 
   return {
     canCreatePost,
@@ -99,7 +101,7 @@ export function postPermissionLogic(
     allowGiphy,
     allowReordering,
     allowCancelVote,
-    restrictReorderingToOwner,
+    restrictReorderingToModerator: restrictReorderingToOwner,
     blurCards,
   } = session.options;
 

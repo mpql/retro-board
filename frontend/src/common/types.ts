@@ -1,15 +1,21 @@
-export interface Session extends PostContainer, Entity {
+export type SessionSettings = Partial<AllSessionSettings>;
+
+export interface AllSessionSettings {
   name: string | null;
+  moderator: User;
+  options: SessionOptions;
+  columns: ColumnDefinition[];
+  locked: boolean;
+  timer: Date | null;
+}
+
+export interface Session extends AllSessionSettings, PostContainer, Entity {
   posts: Post[];
   groups: PostGroup[];
-  columns: ColumnDefinition[];
   messages: Message[];
-  options: SessionOptions;
   encrypted: string | null;
-  locked: boolean;
   createdBy: User;
   ready: string[];
-  timer: Date | null;
   demo: boolean;
 }
 
@@ -60,9 +66,9 @@ export interface SessionOptions {
   allowGrouping: boolean;
   allowReordering: boolean;
   allowCancelVote: boolean;
-  restrictTitleEditToOwner: boolean;
-  restrictReorderingToOwner: boolean;
-  restrictGroupingToOwner: boolean;
+  restrictTitleEditToModerator: boolean;
+  restrictReorderingToModerator: boolean;
+  restrictGroupingToModerator: boolean;
   blurCards: boolean;
   newPostsFirst: boolean;
   allowTimer: boolean;
@@ -189,11 +195,11 @@ export type AdminStats = {
   clients: number;
 };
 
-export type CoachRole = 'user' | 'assistant' | 'system';
+export type CoachRole = 'user' | 'assistant' | 'system' | 'function';
 
 export type CoachMessage = {
   role: CoachRole;
-  content: string;
+  content?: string;
 };
 
 export type TrackingEvent =
@@ -211,6 +217,7 @@ export type TrackingEvent =
   | 'home/load-previous'
   | 'game/session/edit-options'
   | 'game/session/edit-columns'
+  | 'game/session/save-options'
   | 'game/session/reset'
   | 'game/session/disconnect'
   | 'game/session/unexpected-disconnection'

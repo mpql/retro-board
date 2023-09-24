@@ -1,66 +1,47 @@
 import { useState, useCallback } from 'react';
 import Button from '@mui/material/Button';
 import SessionEditor from '../../../session-editor/SessionEditor';
-import { ColumnSettings } from '../../../../state/types';
-import { SessionOptions, ColumnDefinition } from 'common';
-import { toColumnDefinitions } from '../../../../state/columns';
+import { AllSessionSettings, SessionSettings, User } from 'common';
 import { trackEvent } from '../../../../track';
 import { Settings } from '@mui/icons-material';
 import { useTranslation } from 'react-i18next';
-import useSession from '../../useSession';
 import { IconButton, useMediaQuery } from '@mui/material';
 
 interface ModifyOptionsProps {
-  onEditOptions: (options: SessionOptions) => void;
-  onEditColumns: (columns: ColumnDefinition[]) => void;
-  onSaveTemplate: (
-    options: SessionOptions,
-    columns: ColumnDefinition[]
-  ) => void;
+  settings: AllSessionSettings;
+  owner: User;
+  onChange: (settings: SessionSettings, saveAsTemplate: boolean) => void;
 }
 
-function ModifyOptions({
-  onEditOptions,
-  onEditColumns,
-  onSaveTemplate,
-}: ModifyOptionsProps) {
+function ModifyOptions({ settings, owner, onChange }: ModifyOptionsProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const { session } = useSession();
+
   const small = useMediaQuery('(max-width: 500px)');
 
   const handleChange = useCallback(
-    (
-      updatedOptions: SessionOptions,
-      updatedColumns: ColumnSettings[],
-      saveAsTemplate: boolean
-    ) => {
+    (modifiedSettings: AllSessionSettings, saveAsTemplate: boolean) => {
       setOpen(false);
-      if (!session) {
+      if (!settings) {
         return;
       }
-      const { options, columns } = session;
-      if (options !== updatedOptions) {
-        onEditOptions(updatedOptions);
-        trackEvent('game/session/edit-options');
-      }
-      if (columns !== updatedColumns) {
-        onEditColumns(toColumnDefinitions(updatedColumns));
-        trackEvent('game/session/edit-columns');
-      }
-      if (saveAsTemplate) {
-        onSaveTemplate(updatedOptions, toColumnDefinitions(updatedColumns));
-        trackEvent('custom-modal/template/set-defaut');
-      }
+      trackEvent('game/session/save-options');
+      onChange(
+        {
+          columns: modifiedSettings.columns,
+          moderator: modifiedSettings.moderator,
+          timer: modifiedSettings.timer,
+          options: modifiedSettings.options,
+        },
+        saveAsTemplate
+      );
     },
-    [onEditOptions, onEditColumns, onSaveTemplate, session]
+    [onChange, settings]
   );
 
-  if (!session) {
+  if (!settings) {
     return null;
   }
-
-  const { options, columns } = session;
 
   return (
     <>
@@ -80,10 +61,9 @@ function ModifyOptions({
       )}
       {open ? (
         <SessionEditor
-          edit
           open={open}
-          columns={columns}
-          options={options}
+          owner={owner}
+          settings={settings}
           onClose={() => setOpen(false)}
           onChange={handleChange}
         />

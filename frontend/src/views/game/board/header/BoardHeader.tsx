@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react';
 import styled from '@emotion/styled';
-import { SessionOptions, ColumnDefinition } from 'common';
+import { SessionOptions, SessionSettings } from 'common';
 import Typography from '@mui/material/Typography';
 import { makeStyles } from '@mui/styles';
 import { useTranslation } from 'react-i18next';
@@ -26,13 +26,7 @@ import { useShouldLockSession } from 'views/game/useTimer';
 import ClosableAlert from 'components/ClosableAlert';
 
 interface BoardHeaderProps {
-  onRenameSession: (name: string) => void;
-  onEditOptions: (options: SessionOptions) => void;
-  onEditColumns: (columns: ColumnDefinition[]) => void;
-  onSaveTemplate: (
-    options: SessionOptions,
-    columns: ColumnDefinition[]
-  ) => void;
+  onChangeSession: (session: SessionSettings, saveAsTemplate: boolean) => void;
   onLockSession: (locked: boolean) => void;
 }
 
@@ -45,13 +39,7 @@ const useStyles = makeStyles({
   },
 });
 
-function BoardHeader({
-  onEditOptions,
-  onEditColumns,
-  onSaveTemplate,
-  onLockSession,
-  onRenameSession,
-}: BoardHeaderProps) {
+function BoardHeader({ onChangeSession, onLockSession }: BoardHeaderProps) {
   const { t } = useTranslation();
   const classes = useStyles();
   const [key] = useEncryptionKey();
@@ -74,15 +62,22 @@ function BoardHeader({
         ...session.options,
         blurCards: false,
       };
-      onEditOptions(modifiedOptions);
+      onChangeSession({ ...session, options: modifiedOptions }, false);
     }
-  }, [onEditOptions, session]);
+  }, [onChangeSession, session]);
 
   const handleRenameSession = useCallback(
     (name: string) => {
-      onRenameSession(encrypt(name));
+      if (session) {
+        onChangeSession(
+          {
+            name: encrypt(name),
+          },
+          false
+        );
+      }
     },
-    [onRenameSession, encrypt]
+    [onChangeSession, encrypt, session]
   );
 
   if (!session) {
@@ -131,9 +126,9 @@ function BoardHeader({
           {canReveal ? <RevealButton onClick={handleReveal} /> : null}
           {canModifyOptions ? (
             <ModifyOptions
-              onEditOptions={onEditOptions}
-              onEditColumns={onEditColumns}
-              onSaveTemplate={onSaveTemplate}
+              onChange={onChangeSession}
+              owner={session.createdBy}
+              settings={session}
             />
           ) : null}
         </LeftOptions>

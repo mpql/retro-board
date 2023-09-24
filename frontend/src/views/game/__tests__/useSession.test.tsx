@@ -41,13 +41,13 @@ describe('useSession', () => {
       const context = render();
       expect(context.current.session?.name).toBe('My Retro');
       act(() => {
-        context.current.renameSession('Something else');
+        context.current.editSessionSettings({ name: 'Something else' });
       });
       expect(context.current.session?.name).toBe('Something else');
     });
   });
 
-  describe('Reseting a session', () => {
+  describe('Resetting a session', () => {
     it('Should set the session to null', () => {
       const context = render();
       expect(context.current.session).not.toBeNull();

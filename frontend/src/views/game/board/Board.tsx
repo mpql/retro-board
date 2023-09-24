@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import styled from '@emotion/styled';
-import { Post, PostGroup, SessionOptions, ColumnDefinition } from 'common';
+import { Post, PostGroup, SessionOptions, SessionSettings } from 'common';
 import {
   DragDropContext,
   DropResult,
@@ -26,7 +26,6 @@ interface GameModeProps {
   options: SessionOptions;
   search: string;
   demo: boolean;
-  onRenameSession: (name: string) => void;
   onAddPost: (columnIndex: number, content: string, rank: string) => void;
   onAddGroup: (columnIndex: number, rank: string) => void;
   onMovePost: (
@@ -42,12 +41,7 @@ interface GameModeProps {
   onEdit: (post: Post) => void;
   onEditGroup: (group: PostGroup) => void;
   onDeleteGroup: (group: PostGroup) => void;
-  onEditOptions: (options: SessionOptions) => void;
-  onEditColumns: (columns: ColumnDefinition[]) => void;
-  onSaveTemplate: (
-    options: SessionOptions,
-    columns: ColumnDefinition[]
-  ) => void;
+  onChangeSession: (session: SessionSettings, saveAsTemplate: boolean) => void;
   onLockSession: (locked: boolean) => void;
 }
 
@@ -73,7 +67,6 @@ const calculateRankForNewGroup = (column: ColumnContent): string => {
 };
 
 function GameMode({
-  onRenameSession,
   onAddPost,
   onAddGroup,
   onMovePost,
@@ -84,9 +77,7 @@ function GameMode({
   onEdit,
   onEditGroup,
   onDeleteGroup,
-  onEditOptions,
-  onEditColumns,
-  onSaveTemplate,
+  onChangeSession,
   onLockSession,
   columns,
   options,
@@ -140,11 +131,8 @@ function GameMode({
         </ClosableAlert>
       ) : null}
       <BoardHeader
-        onEditColumns={onEditColumns}
-        onEditOptions={onEditOptions}
-        onSaveTemplate={onSaveTemplate}
+        onChangeSession={onChangeSession}
         onLockSession={onLockSession}
-        onRenameSession={onRenameSession}
       />
       <DragDropContext onDragEnd={handleOnDragEnd}>
         <Columns numberOfColumns={columns.length}>
@@ -187,7 +175,8 @@ const Columns = styled.div<{ numberOfColumns: number }>`
   display: flex;
   margin-top: 30px;
 
-  @media screen and (max-width: ${(props) => props.numberOfColumns * 340 + 100}px) {
+  ${(props) => `
+  @media screen and (max-width: ${props.numberOfColumns * 340 + 100}px) {
     margin-top: 10px;
     flex-direction: column;
 
@@ -195,6 +184,7 @@ const Columns = styled.div<{ numberOfColumns: number }>`
       margin-bottom: 20px;
     }
   }
+  `}
 `;
 
 export default GameMode;

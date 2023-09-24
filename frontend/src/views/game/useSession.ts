@@ -1,11 +1,10 @@
 import {
-  ColumnDefinition,
   Post,
   PostGroup,
   Session,
   VoteExtract,
-  SessionOptions,
   Message,
+  SessionSettings,
 } from 'common';
 import { findIndex } from 'lodash';
 import { useCallback } from 'react';
@@ -14,7 +13,6 @@ import { SessionState } from './state';
 
 interface UseSession {
   session: Session | null;
-  renameSession: (name: string) => void;
   resetSession: () => void;
   receivePost: (post: Post) => void;
   receivePostGroup: (postGroup: PostGroup) => void;
@@ -25,8 +23,7 @@ interface UseSession {
   receiveVote: (postId: string, vote: VoteExtract) => void;
   deletePost: (postId: string) => void;
   deletePostGroup: (groupId: string) => void;
-  editOptions: (options: SessionOptions) => void;
-  editColumns: (columns: ColumnDefinition[]) => void;
+  editSessionSettings: (updated: SessionSettings) => void;
   lockSession: (locked: boolean) => void;
   userReady: (userId: string, ready?: boolean) => void;
   cancelVotes: (postId: string, userId: string) => void;
@@ -34,20 +31,6 @@ interface UseSession {
 
 export default function useSession(): UseSession {
   const [session, setSession] = useRecoilState(SessionState);
-
-  const renameSession = useCallback(
-    (name: string) => {
-      setSession((session) =>
-        !session
-          ? session
-          : {
-              ...session,
-              name,
-            }
-      );
-    },
-    [setSession]
-  );
 
   const resetSession = useCallback(() => {
     setSession(null);
@@ -233,27 +216,19 @@ export default function useSession(): UseSession {
     },
     [setSession]
   );
-  const editOptions = useCallback(
-    (options: SessionOptions) => {
+
+  const editSessionSettings = useCallback(
+    (updated: SessionSettings) => {
       setSession((session) =>
         !session
-          ? session
+          ? null
           : {
               ...session,
-              options,
-            }
-      );
-    },
-    [setSession]
-  );
-  const editColumns = useCallback(
-    (columns: ColumnDefinition[]) => {
-      setSession((session) =>
-        !session
-          ? session
-          : {
-              ...session,
-              columns,
+              name: checkUndefined(updated.name, session.name),
+              options: checkUndefined(updated.options, session.options),
+              columns: checkUndefined(updated.columns, session.columns),
+              locked: checkUndefined(updated.locked, session.locked),
+              moderator: checkUndefined(updated.moderator, session.moderator),
             }
       );
     },
@@ -294,7 +269,6 @@ export default function useSession(): UseSession {
 
   return {
     session,
-    renameSession,
     resetSession,
     receiveBoard,
     receivePost,
@@ -305,10 +279,16 @@ export default function useSession(): UseSession {
     updatePostGroup,
     deletePost,
     deletePostGroup,
-    editColumns,
-    editOptions,
+    editSessionSettings,
     lockSession,
     userReady,
     cancelVotes,
   };
+}
+
+function checkUndefined<T>(value: T | undefined, defaultValue: T): T {
+  if (value === undefined) {
+    return defaultValue;
+  }
+  return value;
 }

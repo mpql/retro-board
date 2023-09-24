@@ -93,6 +93,7 @@ const session = (options: SessionOptions, ...posts: Post[]): Session => ({
   posts,
   columns: [],
   createdBy: currentUser,
+  moderator: currentUser,
   options: {
     ...options,
   },
@@ -184,7 +185,7 @@ describe('Session Permission Logic', () => {
     const s = session({
       ...defaultOptions,
       allowGrouping: true,
-      restrictGroupingToOwner: true,
+      restrictGroupingToModerator: true,
     });
     const result = sessionPermissionLogic(s, currentUser, true, false);
     expect(result.canCreateGroup).toBe(true);
@@ -195,7 +196,7 @@ describe('Session Permission Logic', () => {
   it('When restricting editing the title to owner', () => {
     const s = session({
       ...defaultOptions,
-      restrictTitleEditToOwner: true,
+      restrictTitleEditToModerator: true,
     });
     const result = sessionPermissionLogic(s, currentUser, true, false);
     expect(result.canEditTitle).toBe(true);
@@ -206,7 +207,7 @@ describe('Session Permission Logic', () => {
   it('When restricting re-ordering to owner', () => {
     const s = session({
       ...defaultOptions,
-      restrictReorderingToOwner: true,
+      restrictReorderingToModerator: true,
     });
     const result = sessionPermissionLogic(s, currentUser, true, false);
     expect(result.canReorderPosts).toBe(true);
@@ -638,7 +639,7 @@ describe('Posts Permission Logic', () => {
       {
         ...defaultOptions,
         allowReordering: true,
-        restrictReorderingToOwner: true,
+        restrictReorderingToModerator: true,
       },
       p
     );

@@ -100,7 +100,7 @@ function PostsSection({ options, onChange }: PostsSectionProps) {
     (value: boolean) => {
       onChange({
         ...options,
-        restrictReorderingToOwner: value,
+        restrictReorderingToModerator: value,
       });
     },
     [onChange, options]
@@ -110,17 +110,7 @@ function PostsSection({ options, onChange }: PostsSectionProps) {
     (value: boolean) => {
       onChange({
         ...options,
-        restrictGroupingToOwner: value,
-      });
-    },
-    [onChange, options]
-  );
-
-  const setRestrictTitleEditToOwner = useCallback(
-    (value: boolean) => {
-      onChange({
-        ...options,
-        restrictTitleEditToOwner: value,
+        restrictGroupingToModerator: value,
       });
     },
     [onChange, options]
@@ -137,15 +127,6 @@ function PostsSection({ options, onChange }: PostsSectionProps) {
         wide
       >
         <MaxPostsSlider value={options.maxPosts} onChange={setMaxPosts} />
-      </OptionItem>
-      <OptionItem
-        label={t('Customize.restrictTitleEditToOwner')!}
-        help={t('Customize.restrictTitleEditToOwnerHelp')!}
-      >
-        <BooleanOption
-          value={options.restrictTitleEditToOwner}
-          onChange={setRestrictTitleEditToOwner}
-        />
       </OptionItem>
       <OptionItem
         label={t('Customize.blurCards')!}
@@ -193,7 +174,7 @@ function PostsSection({ options, onChange }: PostsSectionProps) {
         help={t('Customize.restrictReorderingToOwnerHelp')!}
       >
         <BooleanOption
-          value={options.restrictReorderingToOwner}
+          value={options.restrictReorderingToModerator}
           onChange={setRestrictReorderingToOwner}
         />
       </OptionItem>
@@ -211,7 +192,7 @@ function PostsSection({ options, onChange }: PostsSectionProps) {
         help={t('Customize.restrictGroupingToOwnerHelp')!}
       >
         <BooleanOption
-          value={options.restrictGroupingToOwner}
+          value={options.restrictGroupingToModerator}
           onChange={setRestrictGroupingToOwner}
         />
       </OptionItem>

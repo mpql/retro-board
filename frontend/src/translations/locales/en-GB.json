@@ -72,6 +72,8 @@
     "title": "Customise your Session",
     "timerCategory": "Timer",
     "timerCategorySub": "Set the timer for the session",
+    "boardCategory": "Board",
+    "boardCategorySub": "Customise board settings",
     "allowTimer": "Allow Timer",
     "allowTimerHelp": "Display a timer at the bottom of the screen",
     "timerDuration": "Timer Duration",
@@ -80,7 +82,7 @@
     "lockOnTimerEndHelp": "Lock the session (make it read-only) when the timer ends",
     "votingCategory": "Voting",
     "votingCategorySub": "Set the rules about likes and dislikes",
-    "postCategory": "Post settings",
+    "postCategory": "Posts",
     "postCategorySub": "Set the rules about what a user can do when creating or viewing a post",
     "customTemplateCategory": "Column Template",
     "customTemplateCategorySub": "Select a template and customize your columns",
@@ -123,7 +125,11 @@
     "templateHelp": "Use a pre-defined set of columns",
     "numberOfColumns": "Number of columns",
     "numberOfColumnsHelp": "Set the number of columns",
-    "makeDefaultTemplate": "Make this my default template"
+    "makeDefaultTemplate": "Make this my default template",
+    "changeModerator": "Change the Moderator",
+    "changeModeratorHelp": "Change the moderator of this session. The moderator can also edit the session settings.",
+    "owner": "Owner",
+    "ownerHelp": "The owner of the session is the person who created it. They are also a moderator. This cannot be changed."
   },
   "PostBoard": {
     "customQuestion": "Custom Column",
