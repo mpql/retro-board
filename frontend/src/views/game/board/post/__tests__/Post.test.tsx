@@ -9,7 +9,7 @@ import { ThemeProvider } from '@mui/material';
 import theme from '../../../../../Theme';
 import { SnackbarProvider } from 'notistack';
 import { act } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 const u = (name: string): User => ({
   name,
