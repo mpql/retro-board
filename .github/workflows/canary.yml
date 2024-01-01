@@ -35,7 +35,7 @@ jobs:
           file: frontend/Dockerfile
           context: frontend
           tags: retrospected/frontend:canary
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           push: true
 
   backend:
@@ -68,7 +68,7 @@ jobs:
           file: backend/Dockerfile
           context: backend
           tags: retrospected/backend:canary
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           push: true
 
   documentation:
