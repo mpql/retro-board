@@ -1,10 +1,10 @@
-import ReactGA from 'react-ga4';
-import { Plan, TrackingEvent } from 'common';
 import * as Sentry from '@sentry/browser';
-import config from './utils/getConfig';
+import type { Plan, TrackingEvent } from 'common';
 import { isProduction } from 'is-production';
 import { noop } from 'lodash';
-import { InitOptions } from 'react-ga4/types/ga4';
+import ReactGA from 'react-ga4';
+import type { InitOptions } from 'react-ga4/types/ga4';
+import config from './utils/getConfig';
 
 let sentryErrorCount = 0;
 
@@ -26,7 +26,7 @@ export const initialiseAnalytics = () => {
               },
             }
           : null,
-      ].filter(Boolean) as InitOptions[]
+      ].filter(Boolean) as InitOptions[],
     );
   }
 };
@@ -42,7 +42,7 @@ export const initialiseSentry = () => {
 
 export const setScope = (fn: (scope: Sentry.Scope | null) => void) => {
   if (hasSentry) {
-    Sentry.configureScope(fn);
+    Sentry.withScope(fn);
   } else {
     fn(null);
   }
@@ -54,7 +54,7 @@ export const recordManualError = (message: string) => {
     if (sentryErrorCount > 100) {
       console.error(
         'Captured too many Sentry errors. Ignoring this one.',
-        sentryErrorCount
+        sentryErrorCount,
       );
     } else {
       Sentry.withScope((scope) => {

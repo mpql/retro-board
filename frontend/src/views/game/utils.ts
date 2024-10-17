@@ -1,7 +1,7 @@
-import { Post, VoteType, PostGroup } from 'common';
+import type { Post, PostGroup, VoteType } from 'common';
 import groupBy from 'lodash/groupBy';
-import toPairs from 'lodash/toPairs';
 import sum from 'lodash/sum';
+import toPairs from 'lodash/toPairs';
 
 export function countVotes(post: Post, type: VoteType): number {
   return post.votes.filter((v) => v.type === type).length;
@@ -20,8 +20,8 @@ export function enumerateVotes(post: Post, type: VoteType): VoteEnumeration[] {
   return toPairs(
     groupBy(
       post.votes.filter((v) => v.type === type),
-      (v) => v.userName
-    )
+      (v) => v.userName,
+    ),
   ).map((pair) => ({
     name: pair[0],
     count: pair[1].length,

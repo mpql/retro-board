@@ -1,4 +1,8 @@
-import { AccessErrorType, Session, UnauthorizedAccessPayload } from 'common';
+import type {
+  AccessErrorType,
+  Session,
+  UnauthorizedAccessPayload,
+} from 'common';
 import { useCallback } from 'react';
 import { useRecoilState } from 'recoil';
 import { UnauthorisedState } from './state';
@@ -17,7 +21,7 @@ export default function useUnauthorised(): UseUnauthorised {
     (reason?: AccessErrorType, session?: Session) => {
       setUnauthorisedValue({ type: reason, session });
     },
-    [setUnauthorisedValue]
+    [setUnauthorisedValue],
   );
 
   const resetUnauthorised = useCallback(() => {

@@ -1,5 +1,5 @@
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 import styled from 'styled-components';
 import { base, themed } from '../base';
 
@@ -10,7 +10,7 @@ const ImageWrapper = styled('img')(
     height: 'auto',
   },
   base,
-  themed('Image')
+  themed('Image'),
 );
 
 const Image = ({ src, alt, ...props }) => (

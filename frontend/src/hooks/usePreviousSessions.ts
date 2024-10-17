@@ -1,11 +1,11 @@
-import { SessionMetadata } from 'common';
-import useUser from '../state/user/useUser';
+import type { SessionMetadata } from 'common';
+import { useCallback, useEffect, useState } from 'react';
 import { fetchPreviousSessions } from '../api';
-import { useState, useEffect, useCallback } from 'react';
+import useUser from '../state/user/useUser';
 
 let CACHE: SessionMetadata[] = [];
 
-export default function usePreviousSessions(): [SessionMetadata[], Function] {
+export default function usePreviousSessions(): [SessionMetadata[], () => void] {
   const [sessions, setSessions] = useState<SessionMetadata[]>(CACHE);
   const user = useUser();
 

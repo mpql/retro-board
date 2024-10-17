@@ -8,21 +8,23 @@ import {
   getRegisterTemplate,
   getSelfHostedWelcomeEmailTemplate,
 } from './template-loader.js';
-import { EmailSender } from './types.js';
+import type { EmailSender } from './types.js';
 
 function getSender(): EmailSender | null {
   if (config.SENDGRID_API_KEY) {
     console.log(
-      chalk`📨  {red SendGrid} is going to be used for {yellow emails}`
+      chalk`📨  {red SendGrid} is going to be used for {yellow emails}`,
     );
     return sendGridSender;
-  } else if (config.MAIL_SMTP_HOST) {
+  }
+
+  if (config.MAIL_SMTP_HOST) {
     console.log(chalk`📨  {red SMTP} is going to be used for {yellow emails}`);
     return smtpSender;
   }
 
   console.log(
-    chalk`📨  {red NO EMAIL PROVIDER CONFIGURED}. It is recommended to setup a SendGrid or SMTP email provider for account management.`
+    chalk`📨  {red NO EMAIL PROVIDER CONFIGURED}. It is recommended to setup a SendGrid or SMTP email provider for account management.`,
   );
   return null;
 }
@@ -32,7 +34,7 @@ const send = getSender();
 export async function sendVerificationEmail(
   email: string,
   name: string,
-  code: string
+  code: string,
 ) {
   if (!send) {
     return;
@@ -41,12 +43,12 @@ export async function sendVerificationEmail(
     encodeURIComponent(email),
     name,
     code,
-    config.BASE_URL
+    config.BASE_URL,
   );
   const result = send(
     email,
     'Welcome to Retrospected - Verify your email',
-    template
+    template,
   );
   if (!result) {
     console.error('Sending email did not work');
@@ -56,7 +58,7 @@ export async function sendVerificationEmail(
 export async function sendResetPassword(
   email: string,
   name: string,
-  code: string
+  code: string,
 ) {
   if (!send) {
     return;
@@ -65,7 +67,7 @@ export async function sendResetPassword(
     encodeURIComponent(email),
     name,
     code,
-    config.BASE_URL
+    config.BASE_URL,
   );
   const result = send(email, 'Retrospected - Reset your password', template);
   if (!result) {
@@ -80,7 +82,7 @@ function generateReadableSecret(): string {
 export async function sendSelfHostWelcome(
   email: string,
   name: string,
-  key: string
+  key: string,
 ) {
   if (!send) {
     return;
@@ -95,7 +97,7 @@ export async function sendSelfHostWelcome(
     dbPassword,
     pgAdminPassword,
     sessionSecret,
-    email
+    email,
   );
   const result = send(email, 'Welcome to Retrospected Self-Hosted!', template);
   if (!result) {

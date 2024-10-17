@@ -13,32 +13,29 @@ import icon6 from '@/common/assets/image/webAppCreative/icons/6.png';
 import icon7 from '@/common/assets/image/webAppCreative/icons/7.png';
 
 import asana from '@/common/assets/image/webAppCreative/icons/asana.png';
+import donut from '@/common/assets/image/webAppCreative/icons/donut.png';
+import dribbble from '@/common/assets/image/webAppCreative/icons/dribbble.png';
 import drive from '@/common/assets/image/webAppCreative/icons/drive.png';
 import dropbox from '@/common/assets/image/webAppCreative/icons/dropbox.png';
+import facebook from '@/common/assets/image/webAppCreative/icons/facebook.png';
 import fontAwesome from '@/common/assets/image/webAppCreative/icons/fontawesome.png';
 import github from '@/common/assets/image/webAppCreative/icons/github.png';
 import googleCloud from '@/common/assets/image/webAppCreative/icons/google-cloud.png';
+import icecream from '@/common/assets/image/webAppCreative/icons/icecream.png';
 import messenger from '@/common/assets/image/webAppCreative/icons/messenger.png';
 import nginx from '@/common/assets/image/webAppCreative/icons/nginx.png';
+import pizza from '@/common/assets/image/webAppCreative/icons/pizza.png';
 import slack2 from '@/common/assets/image/webAppCreative/icons/slack.png';
 import smashingMag from '@/common/assets/image/webAppCreative/icons/smashing-mag.png';
+import twitter from '@/common/assets/image/webAppCreative/icons/twitter.png';
 import zeplin from '@/common/assets/image/webAppCreative/icons/zeplin.png';
 import zoom from '@/common/assets/image/webAppCreative/icons/zoom.png';
-import icecream from '@/common/assets/image/webAppCreative/icons/icecream.png';
-import donut from '@/common/assets/image/webAppCreative/icons/donut.png';
-import pizza from '@/common/assets/image/webAppCreative/icons/pizza.png';
+import siteLogo from '@/common/assets/image/webAppCreative/logo.png';
 import post1 from '@/common/assets/image/webAppCreative/post1.png';
 import post2 from '@/common/assets/image/webAppCreative/post2.png';
 import post3 from '@/common/assets/image/webAppCreative/post3.png';
-import siteLogo from '@/common/assets/image/webAppCreative/logo.png';
-import facebook from '@/common/assets/image/webAppCreative/icons/facebook.png';
-import twitter from '@/common/assets/image/webAppCreative/icons/twitter.png';
-import dribbble from '@/common/assets/image/webAppCreative/icons/dribbble.png';
 
 export const clients = [envato, evernote, forbes, geekwire, slack, usaToday];
-
-
-
 
 export const pricing = [
   {
@@ -128,7 +125,8 @@ export const posts = [
     id: 3,
     date: 'Dec 8, 2020',
     image: post3,
-    title: `Why You Might Want to Reconsider with Tracking First Meaningful Paint`,
+    title:
+      'Why You Might Want to Reconsider with Tracking First Meaningful Paint',
     excerpt: {
       label: 'Learn More',
       link: '#',

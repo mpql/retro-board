@@ -66,6 +66,7 @@ It features the following technologies:
 - [Docusaurus](http://docusaurus.io/), for our documentation
 - [NextJS](https://nextjs.org/), for our landing page
 - [ChatGPT](https://openai.com/blog/chatgpt), powering our AI agile coach
+- [Biome](https://biomejs.dev), for linting and formatting, all in one beautiful package
 
 Previous versions featured the following libraries:
 
@@ -96,6 +97,12 @@ You can start an instance of Retrospected in 5 minutes by following the [quick-s
 This will run a demo version, which you can turn into a fully licenced version by purchasing a [Self Hosted licence](https://app.retrospected.com/subscribe?product=self-hosted).
 
 ## Versions History
+
+### Version 5.5.0
+
+- Migrate from ESLint and Pretter to Biome, a single tool for linting, formatting and more
+- Upgrade dependencies across the board
+- Fix an issue with running the backend in development mode with ts-node and recent versions of Node
 
 ### Version 5.4.1
 

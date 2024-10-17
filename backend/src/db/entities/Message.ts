@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import type { Relation } from 'typeorm';
 import SessionEntity from './Session.js';
-import { Message } from '../../common/index.js';
+import type { Message } from '../../common/index.js';
 import { UserEntity } from './UserIdentity.js';
 
 @Entity({ name: 'messages' })
@@ -42,7 +42,7 @@ export default class MessageEntity {
     id: string,
     session: Relation<SessionEntity>,
     content: string,
-    user: UserEntity
+    user: UserEntity,
   ) {
     this.id = id;
     this.session = session;

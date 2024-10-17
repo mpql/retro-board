@@ -1,12 +1,15 @@
 import { SessionEntity } from '../entities/index.js';
 import ColumnRepository from './ColumnRepository.js';
-import { Session as JsonSession, SessionOptions } from '../../common/index.js';
+import type {
+  Session as JsonSession,
+  SessionOptions,
+} from '../../common/index.js';
 import { getBaseRepository, saveAndReload } from './BaseRepository.js';
 
 export default getBaseRepository(SessionEntity).extend({
   async updateOptions(
     sessionId: string,
-    options: SessionOptions
+    options: SessionOptions,
   ): Promise<SessionOptions | null> {
     try {
       await this.save({
@@ -27,7 +30,7 @@ export default getBaseRepository(SessionEntity).extend({
   },
   async saveFromJson(
     session: Omit<JsonSession, 'createdBy' | 'moderator'>,
-    authorId: string
+    authorId: string,
   ): Promise<JsonSession> {
     const sessionWithoutPosts = {
       ...session,
@@ -36,7 +39,9 @@ export default getBaseRepository(SessionEntity).extend({
       createdBy: { id: authorId },
       moderator: { id: authorId },
     };
+    // biome-ignore lint/performance/noDelete: <explanation>
     delete sessionWithoutPosts.posts;
+    // biome-ignore lint/performance/noDelete: <explanation>
     delete sessionWithoutPosts.columns;
 
     const columnsRepo = this.manager.withRepository(ColumnRepository);

@@ -1,14 +1,14 @@
 import { SessionEntity, PostEntity } from '../entities/index.js';
 import SessionRepository from './SessionRepository.js';
-import { Post as JsonPost, defaultSession } from '../../common/index.js';
+import { type Post as JsonPost, defaultSession } from '../../common/index.js';
 import { cloneDeep } from 'lodash-es';
 import { getBaseRepository, saveAndReload } from './BaseRepository.js';
-import { DeepPartial } from 'typeorm';
+import type { DeepPartial } from 'typeorm';
 
 export default getBaseRepository(PostEntity).extend({
   async updateFromJson(
     sessionId: string,
-    post: JsonPost
+    post: JsonPost,
   ): Promise<PostEntity | undefined> {
     return await saveAndReload(this, {
       ...cloneDeep(post),
@@ -29,7 +29,7 @@ export default getBaseRepository(PostEntity).extend({
   async saveFromJson(
     sessionId: string,
     userId: string,
-    post: DeepPartial<JsonPost>
+    post: DeepPartial<JsonPost>,
   ): Promise<PostEntity | undefined> {
     const session = await this.manager.findOne(SessionEntity, {
       where: { id: sessionId },
@@ -49,14 +49,13 @@ export default getBaseRepository(PostEntity).extend({
             }
           : null,
       });
-    } else {
-      const sessionRepository = this.manager.withRepository(SessionRepository);
-      const newSession = {
-        ...defaultSession,
-        id: sessionId,
-      };
-      await sessionRepository.saveFromJson(newSession, userId);
-      return await this.saveFromJson(sessionId, userId, cloneDeep(post));
     }
+    const sessionRepository = this.manager.withRepository(SessionRepository);
+    const newSession = {
+      ...defaultSession,
+      id: sessionId,
+    };
+    await sessionRepository.saveFromJson(newSession, userId);
+    return await this.saveFromJson(sessionId, userId, cloneDeep(post));
   },
 });

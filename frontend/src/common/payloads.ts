@@ -1,10 +1,10 @@
-import {
-  Plan,
-  Currency,
-  StripeLocales,
+import type {
   AccessErrorType,
   CoachMessage,
+  Currency,
+  Plan,
   Session,
+  StripeLocales,
 } from './types.js';
 
 export interface RegisterPayload {

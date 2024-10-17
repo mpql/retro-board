@@ -1,9 +1,12 @@
-import { Post } from 'common';
-import { postPermissionLogic, PostUserPermissions } from './permissions-logic';
+import type { Post } from 'common';
+import useBackendCapabilities from 'global/useBackendCapabilities';
 import useUser from '../../../state/user/useUser';
 import useSession from '../useSession';
 import { useShouldLockSession } from '../useTimer';
-import useBackendCapabilities from 'global/useBackendCapabilities';
+import {
+  type PostUserPermissions,
+  postPermissionLogic,
+} from './permissions-logic';
 
 export function usePostUserPermissions(post: Post): PostUserPermissions {
   const { session } = useSession();
@@ -14,7 +17,7 @@ export function usePostUserPermissions(post: Post): PostUserPermissions {
 }
 
 export function usePostUserPermissionsNullable(
-  post?: Post
+  post?: Post,
 ): PostUserPermissions | undefined {
   const { session } = useSession();
   const readonly = useShouldLockSession();

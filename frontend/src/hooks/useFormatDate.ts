@@ -1,6 +1,6 @@
 import {
+  type Locale,
   formatDistanceToNow as formatDistanceToNowBase,
-  Locale,
 } from 'date-fns';
 import englishLocale from 'date-fns/locale/en-GB';
 import { useEffect, useState } from 'react';

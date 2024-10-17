@@ -3,14 +3,14 @@ import LicenceEntity from '../entities/Licence.js';
 import { v4 } from 'uuid';
 import { sendSelfHostWelcome } from '../../email/emailSender.js';
 import { LicenceRepository } from '../repositories/index.js';
-import { LicenceMetadata } from './../../types.js';
+import type { LicenceMetadata } from './../../types.js';
 import { saveAndReload } from '../repositories/BaseRepository.js';
 
 export async function registerLicence(
   email: string | null,
   name: string | null | undefined,
   customerId: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<boolean> {
   return await transaction(async (manager) => {
     const repository = manager.withRepository(LicenceRepository);
@@ -48,7 +48,7 @@ export async function validateLicence(key: string): Promise<boolean> {
 }
 
 export async function fetchLicence(
-  key: string
+  key: string,
 ): Promise<LicenceMetadata | null> {
   return await transaction(async (manager) => {
     const repository = manager.getRepository(LicenceEntity);
@@ -59,7 +59,7 @@ export async function fetchLicence(
       if (found) {
         return {
           licence: key,
-          owner: found.email!,
+          owner: found.email as string,
         };
       }
     } catch (err) {

@@ -1,12 +1,12 @@
 import { VoteEntity } from '../entities/index.js';
-import { Vote as JsonVote } from '../../common/index.js';
+import type { Vote as JsonVote } from '../../common/index.js';
 import { getBaseRepository } from './BaseRepository.js';
 
 export default getBaseRepository(VoteEntity).extend({
   async saveFromJson(
     postId: string,
     userId: string,
-    vote: JsonVote
+    vote: JsonVote,
   ): Promise<void> {
     try {
       await this.save({

@@ -1,5 +1,5 @@
-import { UserEntity, SubscriptionEntity } from '../entities/index.js';
-import { Plan } from '../../common/index.js';
+import { type UserEntity, SubscriptionEntity } from '../entities/index.js';
+import type { Plan } from '../../common/index.js';
 import { getBaseRepository, saveAndReload } from './BaseRepository.js';
 
 export default getBaseRepository(SubscriptionEntity).extend({
@@ -7,7 +7,7 @@ export default getBaseRepository(SubscriptionEntity).extend({
     stripeSubscriptionId: string,
     owner: UserEntity,
     plan: Plan,
-    domain: string | null
+    domain: string | null,
   ): Promise<SubscriptionEntity> {
     const existingSub = await this.findOne({
       where: { id: stripeSubscriptionId },
@@ -17,7 +17,7 @@ export default getBaseRepository(SubscriptionEntity).extend({
       const newSubscription = new SubscriptionEntity(
         stripeSubscriptionId,
         owner,
-        plan
+        plan,
       );
       newSubscription.domain = domain;
       newSubscription.active = true;

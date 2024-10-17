@@ -1,14 +1,20 @@
-import { BackendCapabilities, Post, PostGroup, Session, User } from 'common';
-import sortBy from 'lodash/sortBy';
+import type {
+  BackendCapabilities,
+  Post,
+  PostGroup,
+  Session,
+  User,
+} from 'common';
+import useBackendCapabilities from 'global/useBackendCapabilities';
 import flattenDeep from 'lodash/flattenDeep';
-import { ColumnContent } from '../types';
-import { ColumnStats, ColumnStatsItem, Stats, ActionItem } from './types';
-import { countVotes, countVotesForGroup } from '../utils';
-import { postPermissionLogic } from '../board/permissions-logic';
+import sortBy from 'lodash/sortBy';
 import { useMemo } from 'react';
 import useUser from '../../../state/user/useUser';
+import { postPermissionLogic } from '../board/permissions-logic';
+import type { ColumnContent } from '../types';
 import useSession from '../useSession';
-import useBackendCapabilities from 'global/useBackendCapabilities';
+import { countVotes, countVotesForGroup } from '../utils';
+import type { ActionItem, ColumnStats, ColumnStatsItem, Stats } from './types';
 
 export function useSummary(columns: ColumnContent[]): Stats {
   const { session } = useSession();
@@ -18,7 +24,7 @@ export function useSummary(columns: ColumnContent[]): Stats {
   const results = useMemo(() => {
     return {
       columns: columns.map((c) =>
-        calculateColumn(c, user, session, capabilities)
+        calculateColumn(c, user, session, capabilities),
       ),
       actions: buildActions(columns),
     };
@@ -31,10 +37,10 @@ function calculateColumn(
   column: ColumnContent,
   user: User | null,
   session: Session | null,
-  capabilities: BackendCapabilities
+  capabilities: BackendCapabilities,
 ): ColumnStats {
   const posts: ColumnStatsItem[] = column.posts.map((p) =>
-    postToItem(p, user, session, capabilities)
+    postToItem(p, user, session, capabilities),
   );
   const groups: ColumnStatsItem[] = column.groups
     .filter((g) => !!g.posts.length)
@@ -46,14 +52,14 @@ function postToItem(
   post: Post,
   user: User | null,
   session: Session | null,
-  capabilities: BackendCapabilities
+  capabilities: BackendCapabilities,
 ): ColumnStatsItem {
   const permissions = postPermissionLogic(
     post,
     session,
     capabilities,
     user,
-    false
+    false,
   );
   return {
     id: post.id,
@@ -71,7 +77,7 @@ function groupToItem(
   group: PostGroup,
   user: User | null,
   session: Session | null,
-  capabilities: BackendCapabilities
+  capabilities: BackendCapabilities,
 ): ColumnStatsItem {
   return {
     id: group.id,
@@ -80,7 +86,7 @@ function groupToItem(
     type: 'group',
     children: sortBy(
       group.posts.map((p) => postToItem(p, user, session, capabilities)),
-      sortingFunction
+      sortingFunction,
     ),
     likes: countVotesForGroup(group, 'like'),
     dislikes: countVotesForGroup(group, 'dislike'),
@@ -90,7 +96,7 @@ function groupToItem(
 
 function buildActions(columns: ColumnContent[]): ActionItem[] {
   return getAllPosts(columns).map((p) => ({
-    action: p.action!,
+    action: p.action as string,
     postContent: p.content,
     postId: p.id,
   }));
@@ -100,7 +106,9 @@ function getAllPosts(columns: ColumnContent[]): Post[] {
   return [
     ...flattenDeep(columns.map((c) => c.posts.filter((p) => !!p.action))),
     ...flattenDeep(
-      columns.map((c) => c.groups.map((g) => g.posts.filter((p) => !!p.action)))
+      columns.map((c) =>
+        c.groups.map((g) => g.posts.filter((p) => !!p.action)),
+      ),
     ),
   ];
 }

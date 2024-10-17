@@ -1,13 +1,13 @@
-import { useMemo } from 'react';
-import flatten from 'lodash/flatten';
-import sortedUniq from 'lodash/sortedUniq';
-import sortBy from 'lodash/sortBy';
 import { format } from 'date-fns';
-import useColumns from '../useColumns';
+import flatten from 'lodash/flatten';
+import sortBy from 'lodash/sortBy';
+import sortedUniq from 'lodash/sortedUniq';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSummary } from './useSummary';
-import { ColumnStatsItem, ActionItem } from './types';
+import useColumns from '../useColumns';
 import useSession from '../useSession';
+import type { ActionItem, ColumnStatsItem } from './types';
+import { useSummary } from './useSummary';
 
 export default function useMarkdown() {
   const { session } = useSession();
@@ -26,9 +26,9 @@ export default function useMarkdown() {
           session.posts.map((p) => [
             p.user.name,
             ...p.votes.map((v) => v.userName),
-          ])
-        )
-      )
+          ]),
+        ),
+      ),
     ).join(', ');
     const numberOfVotes = session.posts.reduce((prev, cur) => {
       return prev + cur.votes.length;
@@ -58,14 +58,14 @@ ${stats.actions.map(toAction).join('\n')}
 ### Posts
 `;
 
-    stats.columns.forEach((col) => {
+    for (const col of stats.columns) {
       md += `
   
 #### ${col.column.label}
 
 ${[...col.items].map((i) => toItem(i, 0)).join('\n')}
 `;
-    });
+    }
 
     return md;
   }, [session, t, stats]);
@@ -77,14 +77,14 @@ function toItem(item: ColumnStatsItem, depth: number) {
   let content = `${' '.repeat(depth * 2)}* (+${item.likes}/-${
     item.dislikes
   }) ${highlight}${toMultiline(item.content)}${highlight}`;
-  if (item.post && item.post.action) {
+  if (item.post?.action) {
     content += `\n${' '.repeat((depth + 1) * 2)}* **Action**: *${toMultiline(
-      item.post.action
+      item.post.action,
     )}*`;
   }
-  item.children.forEach((child) => {
-    content += '\n' + toItem(child, depth + 1);
-  });
+  for (const child of item.children) {
+    content += `\n${toItem(child, depth + 1)}`;
+  }
 
   return content;
 }

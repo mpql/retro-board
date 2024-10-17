@@ -1,7 +1,7 @@
-import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
-import RangeBoxStyle from './range.style';
+import React, { Fragment } from 'react';
 import Rheostat from 'rheostat';
+import RangeBoxStyle from './range.style';
 import 'rheostat/initialize';
 
 const handleChange = (props) => {
@@ -11,7 +11,8 @@ const handleChange = (props) => {
 //Main Component
 const RangeBox = ({ className, labelText, labelPosition, type, ...props }) => {
   const { min, max } = props;
-  let initValue, lastValue;
+  let initValue;
+  let lastValue;
   initValue = min ? min : 0;
   lastValue = max ? max : 100;
 

@@ -1,14 +1,16 @@
 {
   "name": "@retrospected/marketing",
-  "version": "5.4.2",
+  "version": "5.5.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "ci-lint": "biome ci"
   },
   "dependencies": {
+    "@biomejs/biome": "1.9.4",
     "@fortawesome/fontawesome-svg-core": "^6.4.0",
     "@fortawesome/free-regular-svg-icons": "^6.4.0",
     "@fortawesome/free-solid-svg-icons": "^6.4.0",
@@ -31,8 +33,6 @@
     "@use-it/event-listener": "^0.1.7",
     "animate.css": "^4.1.1",
     "date-fns": "^2.30.0",
-    "eslint": "8.45.0",
-    "eslint-config-next": "13.4.12",
     "fs": "^0.0.1-security",
     "gray-matter": "^4.0.3",
     "i18next": "^23.2.11",

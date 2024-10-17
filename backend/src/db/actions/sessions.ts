@@ -1,20 +1,20 @@
 import {
-  UserEntity,
-  PostEntity,
-  PostGroupEntity,
-  ColumnDefinitionEntity,
-  SessionEntity,
-  SessionTemplateEntity,
+  type UserEntity,
+  type PostEntity,
+  type PostGroupEntity,
+  type ColumnDefinitionEntity,
+  type SessionEntity,
+  type SessionTemplateEntity,
   SessionView,
 } from '../entities/index.js';
 import {
-  Session,
+  type Session,
   defaultSession,
-  ColumnDefinition,
-  SessionOptions,
-  SessionMetadata,
-  AccessErrorType,
-  FullUser,
+  type ColumnDefinition,
+  type SessionOptions,
+  type SessionMetadata,
+  type AccessErrorType,
+  type FullUser,
 } from '../../common/index.js';
 import shortId from 'shortid';
 import { v4 } from 'uuid';
@@ -27,15 +27,15 @@ import {
   ColumnRepository,
 } from '../repositories/index.js';
 import { transaction } from './transaction.js';
-import { EntityManager, In } from 'typeorm';
+import { type EntityManager, In } from 'typeorm';
 import { getUserViewInner, isUserPro } from './users.js';
 import { uniq } from 'lodash-es';
 import MessageRepository from '../repositories/MessageRepository.js';
-import MessageEntity from '../entities/Message.js';
+import type MessageEntity from '../entities/Message.js';
 
 export async function createSessionFromSlack(
   slackUserId: string,
-  name: string
+  name: string,
 ): Promise<Session | null> {
   return await transaction(async (manager) => {
     const userRepository = manager.withRepository(UserRepository);
@@ -53,7 +53,7 @@ export async function createSessionFromSlack(
 
 export async function createSession(
   author: UserEntity,
-  encryptionCheck?: string
+  encryptionCheck?: string,
 ): Promise<Session> {
   return await transaction(async (manager) => {
     const userRepository = manager.withRepository(UserRepository);
@@ -78,30 +78,29 @@ export async function createSession(
                     ...c,
                     id: v4(),
                     author: { id: author.id },
-                  }) as ColumnDefinition
+                  }) as ColumnDefinition,
               )
             : [],
         },
-        author.id
-      );
-      await storeVisitorInner(manager, newSession.id, author);
-      return newSession;
-    } else {
-      const newSession = await sessionRepository.saveFromJson(
-        {
-          ...defaultSession,
-          columns: defaultSession.columns.map((c) => ({
-            ...c,
-            id: v4(),
-          })),
-          id,
-          encrypted: encryptionCheck || null,
-        },
-        author.id
+        author.id,
       );
       await storeVisitorInner(manager, newSession.id, author);
       return newSession;
     }
+    const newSession = await sessionRepository.saveFromJson(
+      {
+        ...defaultSession,
+        columns: defaultSession.columns.map((c) => ({
+          ...c,
+          id: v4(),
+        })),
+        id,
+        encrypted: encryptionCheck || null,
+      },
+      author.id,
+    );
+    await storeVisitorInner(manager, newSession.id, author);
+    return newSession;
   });
 }
 
@@ -109,13 +108,13 @@ export async function createCustom(
   options: SessionOptions,
   columns: ColumnDefinition[],
   setDefault: boolean,
-  author: UserEntity
+  author: UserEntity,
 ): Promise<Session> {
   return await transaction(async (manager) => {
     const userRepository = manager.withRepository(UserRepository);
     const sessionRepository = manager.withRepository(SessionRepository);
     const templateRepository = manager.withRepository(
-      SessionTemplateRepository
+      SessionTemplateRepository,
     );
     const id = shortId();
     const session = await sessionRepository.findOne({ where: { id } });
@@ -127,7 +126,7 @@ export async function createCustom(
           options,
           columns,
         },
-        author.id
+        author.id,
       );
 
       if (setDefault) {
@@ -135,7 +134,7 @@ export async function createCustom(
           'Default Template',
           columns,
           options,
-          author.id
+          author.id,
         );
         await userRepository.persistTemplate(author.id, defaultTemplate.id);
       }
@@ -189,15 +188,14 @@ export async function getSession(sessionId: string): Promise<Session | null> {
         groups: groups.map((g) => g.toJson()),
         messages: messages.map((m) => m.toJson()),
       };
-    } else {
-      return null;
     }
+    return null;
   });
 }
 
 export async function saveSession(
   userId: string,
-  session: Session
+  session: Session,
 ): Promise<void> {
   return await transaction(async (manager) => {
     const sessionRepository = manager.withRepository(SessionRepository);
@@ -207,7 +205,7 @@ export async function saveSession(
 
 export async function deleteSessions(
   identityId: string,
-  sessionId: string
+  sessionId: string,
 ): Promise<boolean> {
   return await transaction(async (manager) => {
     const sessionRepository = manager.withRepository(SessionRepository);
@@ -225,33 +223,33 @@ export async function deleteSessions(
     }
     if (session.createdBy.id !== user.id || !user.canDeleteSession) {
       console.error(
-        'The user is not the one who created the session, or is anonymous'
+        'The user is not the one who created the session, or is anonymous',
       );
       return false;
     }
 
     try {
       await sessionRepository.query(
-        `delete from messages where session_id = $1;`,
-        [sessionId]
+        'delete from messages where session_id = $1;',
+        [sessionId],
       );
       await sessionRepository.query(
-        `delete from visitors where sessions_id = $1;`,
-        [sessionId]
+        'delete from visitors where sessions_id = $1;',
+        [sessionId],
       );
       await sessionRepository.query(
-        `delete from posts where session_id = $1;`,
-        [sessionId]
+        'delete from posts where session_id = $1;',
+        [sessionId],
       );
       await sessionRepository.query(
-        `delete from columns where session_id = $1;`,
-        [sessionId]
+        'delete from columns where session_id = $1;',
+        [sessionId],
       );
       await sessionRepository.query(
-        `delete from groups where session_id = $1;`,
-        [sessionId]
+        'delete from groups where session_id = $1;',
+        [sessionId],
       );
-      await sessionRepository.query(`delete from sessions where id = $1;`, [
+      await sessionRepository.query('delete from sessions where id = $1;', [
         sessionId,
       ]);
     } catch (err) {
@@ -264,7 +262,7 @@ export async function deleteSessions(
 }
 
 export async function previousSessions(
-  userId: string
+  userId: string,
 ): Promise<SessionMetadata[]> {
   return await transaction(async (manager) => {
     const sessionsAsVisitors: { sessions_id: string }[] = await manager.query(
@@ -272,7 +270,7 @@ export async function previousSessions(
       select distinct v.sessions_id from visitors v
       where v.users_id = $1
     `,
-      [userId]
+      [userId],
     );
 
     const sessionsAsOwner: { id: string }[] = await manager.query(
@@ -280,7 +278,7 @@ export async function previousSessions(
       select s.id from sessions s
       where s.created_by_id = $1
     `,
-      [userId]
+      [userId],
     );
 
     const ids = uniq([
@@ -297,7 +295,7 @@ export async function previousSessions(
 }
 
 export async function getDefaultTemplate(
-  id: string
+  id: string,
 ): Promise<SessionTemplateEntity | null> {
   return await transaction(async (manager) => {
     const userRepository = manager.withRepository(UserRepository);
@@ -311,7 +309,7 @@ export async function getDefaultTemplate(
 
 export async function updateOptions(
   sessionId: string,
-  options: SessionOptions
+  options: SessionOptions,
 ): Promise<SessionOptions | null> {
   return await transaction(async (manager) => {
     const sessionRepository = manager.withRepository(SessionRepository);
@@ -321,7 +319,7 @@ export async function updateOptions(
 
 export async function updateColumns(
   sessionId: string,
-  columns: ColumnDefinition[]
+  columns: ColumnDefinition[],
 ): Promise<ColumnDefinition[] | null> {
   return await transaction(async (manager) => {
     const columnRepository = manager.withRepository(ColumnRepository);
@@ -332,19 +330,19 @@ export async function updateColumns(
 export async function saveTemplate(
   userId: string,
   columns: ColumnDefinition[],
-  options: SessionOptions
+  options: SessionOptions,
 ) {
   return await transaction(async (manager) => {
     const userRepository = manager.withRepository(UserRepository);
     const templateRepository = manager.withRepository(
-      SessionTemplateRepository
+      SessionTemplateRepository,
     );
 
     const defaultTemplate = await templateRepository.saveFromJson(
       'Default Template',
       columns,
       options,
-      userId
+      userId,
     );
     await userRepository.persistTemplate(userId, defaultTemplate.id);
   });
@@ -352,7 +350,7 @@ export async function saveTemplate(
 
 export async function updateName(
   sessionId: string,
-  name: string
+  name: string,
 ): Promise<boolean> {
   return await transaction(async (manager) => {
     try {
@@ -374,7 +372,7 @@ export async function updateName(
 
 export async function updateModerator(
   sessionId: string,
-  moderatorId: string
+  moderatorId: string,
 ): Promise<boolean> {
   return await transaction(async (manager) => {
     try {
@@ -399,7 +397,7 @@ export async function updateModerator(
 }
 
 export async function getSessionWithVisitors(
-  sessionId: string
+  sessionId: string,
 ): Promise<SessionEntity | null> {
   return await transaction(async (manager) => {
     return getSessionWithVisitorsInner(manager, sessionId);
@@ -408,7 +406,7 @@ export async function getSessionWithVisitors(
 
 async function getSessionWithVisitorsInner(
   manager: EntityManager,
-  sessionId: string
+  sessionId: string,
 ): Promise<SessionEntity | null> {
   const sessionRepository = manager.withRepository(SessionRepository);
   const session = await sessionRepository.findOne({
@@ -427,13 +425,12 @@ export async function storeVisitor(sessionId: string, user: UserEntity) {
 async function storeVisitorInner(
   manager: EntityManager,
   sessionId: string,
-  user: UserEntity
+  user: UserEntity,
 ) {
   const sessionRepository = manager.withRepository(SessionRepository);
   const session = await getSessionWithVisitorsInner(manager, sessionId);
   if (
-    session &&
-    session.visitors &&
+    session?.visitors &&
     !session.visitors.map((v) => v.id).includes(user.id)
   ) {
     session.visitors.push(user);
@@ -456,7 +453,7 @@ export async function toggleSessionLock(sessionId: string, lock: boolean) {
 
 export async function wasSessionCreatedBy(
   sessionId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   return await transaction(async (manager) => {
     const sessionRepository = manager.withRepository(SessionRepository);
@@ -474,7 +471,7 @@ interface AllowedResponse {
 
 export function isAllowed(
   session: SessionEntity,
-  user: FullUser | null
+  user: FullUser | null,
 ): AllowedResponse {
   if ((session.locked || session.encrypted) && user && !isUserPro(user)) {
     return { allowed: false, reason: 'non_pro' };
@@ -482,9 +479,8 @@ export function isAllowed(
   if (session.locked && session.visitors && user && isUserPro(user)) {
     if (session.visitors.map((v) => v.id).includes(user.id)) {
       return { allowed: true };
-    } else {
-      return { allowed: false, reason: 'locked' };
     }
+    return { allowed: false, reason: 'locked' };
   }
   if (session.locked && !user) {
     return { allowed: false, reason: 'locked' };
@@ -495,7 +491,7 @@ export function isAllowed(
 
 export async function toggleReady(
   sessionId: string,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   return await transaction(async (manager) => {
     const sessionRepository = manager.withRepository(SessionRepository);

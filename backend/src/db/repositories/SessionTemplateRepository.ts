@@ -1,5 +1,5 @@
 import { SessionTemplateEntity } from '../entities/index.js';
-import {
+import type {
   SessionTemplate as JsonSessionTemplate,
   ColumnDefinition as JsonColumnDefinition,
   SessionOptions as JsonSessionOptions,
@@ -13,7 +13,7 @@ export default getBaseRepository(SessionTemplateEntity).extend({
     name: string,
     columns: JsonColumnDefinition[],
     options: JsonSessionOptions,
-    authorId: string
+    authorId: string,
   ): Promise<JsonSessionTemplate> {
     const template = {
       id: v4(),

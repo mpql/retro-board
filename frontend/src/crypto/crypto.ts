@@ -27,13 +27,12 @@ export function decrypt(encrypted: string | null, key: string | null): string {
     if (key) {
       try {
         const bytes = aes.decrypt(encrypted.replace(ENCRYPTED_PREFIX, ''), key);
-        var clear = stringify(bytes);
+        const clear = stringify(bytes);
 
         if (clear.startsWith(CHECK_PREFIX)) {
           return clear.replace(CHECK_PREFIX, '');
-        } else {
-          return CANT_DECRYPT;
         }
+        return CANT_DECRYPT;
       } catch {
         return CANT_DECRYPT;
       }
@@ -51,7 +50,7 @@ function getLocalStorageKey(sessionId: string | null): string | null {
 
 export function storeEncryptionKeyLocally(
   sessionId: string | null,
-  key: string
+  key: string,
 ) {
   const localStorageKey = getLocalStorageKey(sessionId);
   if (localStorageKey) {
@@ -60,7 +59,7 @@ export function storeEncryptionKeyLocally(
 }
 
 export function getStoredEncryptionKey(
-  sessionId: string | null
+  sessionId: string | null,
 ): string | null {
   const localStorageKey = getLocalStorageKey(sessionId);
   if (localStorageKey) {

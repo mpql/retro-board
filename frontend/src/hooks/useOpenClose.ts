@@ -1,11 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 type OpenCloseCallback = () => void;
 
 export default function useOpenClose(
   defaultValue: boolean,
-  onOpen?: Function,
-  onClose?: Function
+  onOpen?: () => void,
+  onClose?: () => void,
 ): [boolean, OpenCloseCallback, OpenCloseCallback] {
   const [isOpen, setIsOpen] = useState(defaultValue);
   const open = useCallback(() => {

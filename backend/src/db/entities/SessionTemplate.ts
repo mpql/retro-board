@@ -9,7 +9,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { TemplateColumnDefinitionEntity } from './ColumnDefinition.js';
-import {
+import type {
   SessionOptions as JsonSessionOptions,
   SessionTemplate,
 } from '../../common/index.js';
@@ -33,7 +33,7 @@ export default class SessionTemplateEntity {
       cascade: true,
       nullable: false,
       eager: false,
-    }
+    },
   )
   public columns: TemplateColumnDefinitionEntity[] | undefined;
   @Column(() => SessionOptionsEntity)
@@ -58,7 +58,7 @@ export default class SessionTemplateEntity {
     id: string,
     name: string | null,
     createdBy: UserEntity,
-    options: Partial<JsonSessionOptions>
+    options: Partial<JsonSessionOptions>,
   ) {
     this.id = id;
     this.name = name;

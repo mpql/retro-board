@@ -1,6 +1,6 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import ReactSelect from 'react-select';
-import PropTypes from 'prop-types';
 import SelectStyle from './select.style';
 
 const Select = ({ className, labelText, labelPosition, ...props }) => {
@@ -17,15 +17,23 @@ const Select = ({ className, labelText, labelPosition, ...props }) => {
     addAllClasses.push(className);
   }
 
-  const LabelField = labelText && <span className="reusecore__field-label">{labelText}</span>;
+  const LabelField = labelText && (
+    <span className="reusecore__field-label">{labelText}</span>
+  );
 
   const position = labelPosition || 'top';
 
   return (
     <SelectStyle className={addAllClasses.join(' ')}>
-      {position === 'left' || position === 'right' || position === 'top' ? LabelField : ''}
+      {position === 'left' || position === 'right' || position === 'top'
+        ? LabelField
+        : ''}
 
-      <ReactSelect className="select-field__wrapper" classNamePrefix="select" {...props} />
+      <ReactSelect
+        className="select-field__wrapper"
+        classNamePrefix="select"
+        {...props}
+      />
       {position === 'bottom' && LabelField}
     </SelectStyle>
   );

@@ -1,4 +1,4 @@
-import { UserIds } from './utils.js';
+import type { UserIds } from './utils.js';
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -11,6 +11,5 @@ declare module 'express-serve-static-core' {
   }
 
   // That, unfortunately, doesn't quite work.
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface User extends UserIds {}
 }

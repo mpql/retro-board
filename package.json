@@ -1,10 +1,10 @@
 {
   "name": "retrospected",
-  "version": "5.4.2",
+  "version": "5.5.0",
   "description": "An agile retrospective board - Powering www.retrospected.com",
   "private": true,
   "scripts": {
-    "lint": "cd frontend && yarn lint && cd ../backend && yarn lint",
+    "lint": "yarn biome ci",
     "clean": "del ./{frontend,backend,common,maintenance}/yarn.lock && del ./yarn.lock && del ./{frontend,backend,common,maintenance}/node_modules && del ./node_modules",
     "frontend": "cd frontend && yarn start && cd ..",
     "backend": "cd backend && yarn start && cd ..",
@@ -42,6 +42,7 @@
   },
   "homepage": "https://www.retrospected.com",
   "dependencies": {
-    "del-cli": "5.0.0"
+    "del-cli": "6.0.0",
+    "@biomejs/biome": "1.9.4"
   }
 }

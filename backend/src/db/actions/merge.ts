@@ -1,4 +1,4 @@
-import { UserView } from '../entities/index.js';
+import type { UserView } from '../entities/index.js';
 import { getUserView } from './users.js';
 import { transaction } from './transaction.js';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../repositories/index.js';
 import { deleteAccount } from './delete.js';
 import { getUserViewFromRequest } from '../../utils.js';
-import { Request } from 'express';
+import type { Request } from 'express';
 import AiChatRepository from '../repositories/AiChatRepository.js';
 
 export async function mergeAnonymous(req: Request, newUserIdentityId: string) {
@@ -23,7 +23,7 @@ export async function mergeAnonymous(req: Request, newUserIdentityId: string) {
 
 export async function mergeUsers(
   mainUserIdentityId: string,
-  mergedUserIdentityIds: string[]
+  mergedUserIdentityIds: string[],
 ): Promise<boolean> {
   for (const target of mergedUserIdentityIds) {
     await mergeOne(mainUserIdentityId, target);
@@ -42,7 +42,7 @@ async function mergeOne(main: string, target: string) {
         ' >>> You should not merge one identity to another of the same account',
         mainUser.id,
         mainUser.identityId,
-        targetUser.identityId
+        targetUser.identityId,
       );
       return;
     }
@@ -64,7 +64,7 @@ async function deleteOne(target: UserView) {
 
 async function migrateOne(main: UserView, target: UserView) {
   console.log(
-    ` > Migrating data from ${target.id} (${target.name}) to ${main.id} (${main.name})`
+    ` > Migrating data from ${target.id} (${target.name}) to ${main.id} (${main.name})`,
   );
   return await transaction(async (manager) => {
     const voteRepo = manager.withRepository(VoteRepository);
@@ -85,29 +85,29 @@ async function migrateOne(main: UserView, target: UserView) {
 				where v.sessions_id = visitors.sessions_id and v.users_id = $1
 			) 
 			`,
-      [main.id, target.id]
+      [main.id, target.id],
     );
 
     await aiChatRepo.update(
       { createdBy: { id: target.id } },
-      { createdBy: { id: main.id } }
+      { createdBy: { id: main.id } },
     );
 
     await voteRepo.update(
       { user: { id: target.id } },
-      { user: { id: main.id } }
+      { user: { id: main.id } },
     );
     await postRepo.update(
       { user: { id: target.id } },
-      { user: { id: main.id } }
+      { user: { id: main.id } },
     );
     await groupRepo.update(
       { user: { id: target.id } },
-      { user: { id: main.id } }
+      { user: { id: main.id } },
     );
     await sessionRepo.update(
       { createdBy: { id: target.id } },
-      { createdBy: { id: main.id } }
+      { createdBy: { id: main.id } },
     );
   });
 }

@@ -8,7 +8,10 @@ import {
   Index,
 } from 'typeorm';
 import type { Relation } from 'typeorm';
-import { ColumnDefinition, ColumnDefinitionType } from '../../common/index.js';
+import type {
+  ColumnDefinition,
+  ColumnDefinitionType,
+} from '../../common/index.js';
 import SessionEntity from './Session.js';
 import SessionTemplateEntity from './SessionTemplate.js';
 
@@ -47,7 +50,7 @@ class ColumnDefinitionEntityBase {
     index: number,
     label: string,
     color: string,
-    icon?: string | null
+    icon?: string | null,
   ) {
     this.id = id;
     this.type = type;
@@ -70,7 +73,7 @@ export class ColumnDefinitionEntity extends ColumnDefinitionEntityBase {
     index: number,
     label: string,
     color: string,
-    icon?: string | null
+    icon?: string | null,
   ) {
     super(id, type, index, label, color, icon);
     this.session = session;
@@ -89,7 +92,7 @@ export class TemplateColumnDefinitionEntity extends ColumnDefinitionEntityBase {
     index: number,
     label: string,
     color: string,
-    icon?: string | null
+    icon?: string | null,
   ) {
     super(id, type, index, label, color, icon);
     this.template = template;

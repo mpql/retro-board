@@ -1,4 +1,4 @@
-name: 'Tests & Linting'
+name: "Tests & Linting"
 
 on:
   push:
@@ -13,13 +13,13 @@ jobs:
       run:
         working-directory: ./frontend
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - run: yarn
       - run: yarn ci-test
-      - run: yarn lint
+      - run: yarn ci-lint
       - run: yarn build
   test-backend:
     runs-on: ubuntu-latest
@@ -27,13 +27,13 @@ jobs:
       run:
         working-directory: ./backend
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - run: yarn
       - run: yarn ci-test
-      - run: yarn lint
+      - run: yarn ci-lint
       - run: yarn build
   test-marketing:
     runs-on: ubuntu-latest
@@ -41,12 +41,12 @@ jobs:
       run:
         working-directory: ./marketing
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - run: yarn
-      - run: yarn lint
+      - run: yarn ci-lint
       - run: yarn build
   test-docs:
     runs-on: ubuntu-latest
@@ -54,10 +54,10 @@ jobs:
       run:
         working-directory: ./docs
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
       - run: yarn
       - run: yarn typecheck
       - run: yarn build

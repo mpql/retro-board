@@ -1,15 +1,15 @@
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import { type Dispatch, type SetStateAction, useEffect, useState } from 'react';
 
 type UseStateFetchValue<T> = [
   T,
   Dispatch<SetStateAction<T>>,
   boolean,
-  Error | null
+  Error | null,
 ];
 
 function useStateFetch<T>(
   url: string | null,
-  defaultValue: T
+  defaultValue: T,
 ): UseStateFetchValue<T> {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);

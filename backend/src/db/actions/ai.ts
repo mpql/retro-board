@@ -1,9 +1,9 @@
-import UserView from '../entities/UserView.js';
+import type UserView from '../entities/UserView.js';
 import AiChatEntity from '../entities/AiChat.js';
 import { transaction } from './transaction.js';
 import AiChatRepository from '../repositories/AiChatRepository.js';
 import { getUser } from './users.js';
-import { CoachMessage, CoachRole } from 'common/types.js';
+import type { CoachMessage, CoachRole } from 'common/types.js';
 import AiChatMessageRepository from '../repositories/AiChatMessageRepository.js';
 import AiChatMessageEntity from '../entities/AiChatMessage.js';
 import { v4 } from 'uuid';
@@ -14,7 +14,7 @@ import config from '../../config.js';
 export async function getAiChatSession(
   id: string,
   userView: UserView,
-  systemMessage: CoachMessage
+  systemMessage: CoachMessage,
 ): Promise<AiChatEntity> {
   return await transaction(async (manager) => {
     const repository = manager.withRepository(AiChatRepository);
@@ -34,8 +34,8 @@ export async function getAiChatSession(
           v4(),
           newChat,
           systemMessage.content,
-          systemMessage.role
-        )
+          systemMessage.role,
+        ),
       );
       return newChat;
     }
@@ -47,7 +47,7 @@ export async function getAiChatSession(
 export async function recordAiChatMessage(
   role: CoachRole,
   content: string | undefined,
-  chat: AiChatEntity
+  chat: AiChatEntity,
 ): Promise<void> {
   if (!content) {
     return;

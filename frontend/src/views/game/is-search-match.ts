@@ -1,8 +1,8 @@
-import { Post } from 'common';
-import { postPermissionLogic } from './board/permissions-logic';
-import { useCallback } from 'react';
+import type { Post } from 'common';
 import useBackendCapabilities from 'global/useBackendCapabilities';
+import { useCallback } from 'react';
 import useUser from 'state/user/useUser';
+import { postPermissionLogic } from './board/permissions-logic';
 import useSession from './useSession';
 
 type SearchPredicate = (post: Post) => boolean;
@@ -15,7 +15,7 @@ export function searchLogic(
   content: string,
   user: string | null,
   search: string,
-  blurred: boolean
+  blurred: boolean,
 ) {
   if (!search) {
     return true;
@@ -41,16 +41,16 @@ export function useSearch(search: string): SearchPredicate {
         session,
         capabilities,
         user,
-        false
+        false,
       );
       return searchLogic(
         post.content,
         post.user.name,
         search,
-        permissions.isBlurred
+        permissions.isBlurred,
       );
     },
-    [capabilities, user, session, search]
+    [capabilities, user, session, search],
   );
 
   return predicate;

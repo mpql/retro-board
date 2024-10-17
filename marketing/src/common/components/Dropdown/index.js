@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  DropdownMenuWrapper,
-  DropdownMenuItemsWrapper,
   DropdownMenuItemWrapper,
+  DropdownMenuItemsWrapper,
+  DropdownMenuWrapper,
 } from './dropdown.style';
 
 const DropdownMenu = (props) => {
@@ -40,12 +40,11 @@ const DropdownMenu = (props) => {
           className={className}
           dropdownDirection={dropdownDirection}
         >
-          {dropdownItems &&
-            dropdownItems.map((item, index) => (
-              <DropdownMenuItemWrapper key={index} onClick={handleToggle}>
-                {item}
-              </DropdownMenuItemWrapper>
-            ))}
+          {dropdownItems?.map((item, index) => (
+            <DropdownMenuItemWrapper key={index} onClick={handleToggle}>
+              {item}
+            </DropdownMenuItemWrapper>
+          ))}
         </DropdownMenuItemsWrapper>
       )}
     </DropdownMenuWrapper>

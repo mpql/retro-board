@@ -3,7 +3,7 @@ import * as socketIo from 'socket.io';
 import { createAdapter } from 'socket.io-redis';
 import { createClient } from 'redis';
 import connectRedis from 'connect-redis';
-import http from 'http';
+import http from 'node:http';
 import chalk from 'chalk-template';
 import session from 'express-session';
 import passport from 'passport';
@@ -21,15 +21,7 @@ import {
   getUserQuota,
 } from './utils.js';
 import { hashPassword } from './encryption.js';
-import {
-  initSentry,
-  setupSentryErrorHandler,
-  setupSentryRequestHandler,
-  setScope,
-  reportQueryError,
-  throttledManualReport,
-} from './sentry.js';
-import {
+import type {
   RegisterPayload,
   ValidateEmailPayload,
   ResetPasswordPayload,
@@ -58,9 +50,9 @@ import {
   updateIdentity,
   getIdentityByUsername,
   associateUserWithAdWordsCampaign,
-  TrackingInfo,
   getRelatedUsers,
 } from './db/actions/users.js';
+import type { TrackingInfo } from './db/actions/users.js';
 import { isLicenced } from './security/is-licenced.js';
 import rateLimit from 'express-rate-limit';
 import { fetchLicence, validateLicence } from './db/actions/licences.js';
@@ -75,42 +67,40 @@ import { mergeAnonymous } from './db/actions/merge.js';
 import aiRouter from './ai/router.js';
 
 const realIpHeader = 'X-Forwarded-For';
-const sessionSecret = `${config.SESSION_SECRET!}-4.11.5`; // Increment to force re-auth
+const sessionSecret = `${config.SESSION_SECRET}-4.11.5`; // Increment to force re-auth
 
 isLicenced().then((hasLicence) => {
   if (!hasLicence) {
     console.log(
-      chalk`{red ------------------------------------------------------------- }`
+      chalk`{red ------------------------------------------------------------- }`,
     );
     console.log(
       chalk`⚠️  {red This software is not licenced.
    You can obtain a licence here:
-   https://app.retrospected.com/subscribe?product=self-hosted}`
+   https://app.retrospected.com/subscribe?product=self-hosted}`,
     );
     console.log(
-      chalk`{red ------------------------------------------------------------- }`
+      chalk`{red ------------------------------------------------------------- }`,
     );
   } else {
     console.log(
-      chalk`{green ----------------------------------------------- }`
+      chalk`{green ----------------------------------------------- }`,
     );
     console.log(chalk`👍  {green This software is licenced.} `);
     console.log(
-      chalk`🔑  {green This licence belongs to ${hasLicence.owner}.} `
+      chalk`🔑  {green This licence belongs to ${hasLicence.owner}.} `,
     );
     console.log(
-      chalk`{green ----------------------------------------------- }`
+      chalk`{green ----------------------------------------------- }`,
     );
   }
 });
 
 if (config.SELF_HOSTED) {
   console.log(
-    chalk`🤳  {cyan This software is {bold self-hosted}. All users are {bold Pro}.}`
+    chalk`🤳  {cyan This software is {bold self-hosted}. All users are {bold Pro}.}`,
   );
 }
-
-initSentry();
 
 const app = express();
 app.use(cookieParser(sessionSecret));
@@ -121,7 +111,7 @@ app.use(
       const request = req as express.Request;
       request.buf = buf;
     },
-  })
+  }),
 );
 app.use(express.urlencoded({ extended: true }));
 
@@ -144,15 +134,11 @@ const heavyLoadLimiter = rateLimit({
   onLimitReached: (req, _, options) => {
     console.error(
       chalk`{red High load request has been rate limited for {blue ${getActualIp(
-        req
-      )}} with options {yellow ${options.windowMs}/${options.max}}}`
+        req,
+      )}} with options {yellow ${options.windowMs}/${options.max}}}`,
     );
-    throttledManualReport('A heavy load request has been rate limited', req);
   },
 });
-
-// Sentry
-setupSentryRequestHandler(app);
 
 // saveUninitialized: true allows us to attach the socket id to the session
 // before we have authenticated the user
@@ -185,7 +171,7 @@ if (config.REDIS_ENABLED) {
     const subClient = redisClient.duplicate();
     io.adapter(createAdapter({ pubClient: redisClient, subClient }));
     console.log(
-      chalk`💾  {red Redis} for {yellow Socket.IO} was {blue activated}`
+      chalk`💾  {red Redis} for {yellow Socket.IO} was {blue activated}`,
     );
   }
 
@@ -204,11 +190,11 @@ if (config.REDIS_ENABLED) {
 
 if (config.OPEN_AI_API_KEY) {
   console.log(
-    chalk`🤖  {red AI / ChatGPT} from {yellow OpenAI} has been {blue activated}`
+    chalk`🤖  {red AI / ChatGPT} from {yellow OpenAI} has been {blue activated}`,
   );
 } else {
   console.log(
-    chalk`🤖  {red AI / ChatGPT} from {yellow OpenAI} was {red not activated}.\n    Please set the {yellow OPEN_AI_API_KEY} environment variable.`
+    chalk`🤖  {red AI / ChatGPT} from {yellow OpenAI} was {red not activated}.\n    Please set the {yellow OPEN_AI_API_KEY} environment variable.`,
   );
 }
 
@@ -229,15 +215,15 @@ if (process.env.NODE_ENV !== 'production') {
         if (hasStripeId) {
           console.error(
             'The following object has a stripe ID property: ',
-            body
+            body,
           );
         }
       }
-    })
+    }),
   );
 }
 
-app.get('/api/ping', (req, res) => {
+app.get('/api/ping', (_req, res) => {
   res.send('pong');
 });
 
@@ -247,7 +233,8 @@ app.get('/healthz', async (_, res) => {
 });
 
 io.use(function (socket, next) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // biome-ignore lint/complexity/useArrowFunction: <explanation>
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   sessionMiddleware(socket.request as any, {} as any, next as any);
 });
 
@@ -277,50 +264,42 @@ db().then(() => {
   app.post('/api/create', heavyLoadLimiter, async (req, res) => {
     const identity = await getIdentityFromRequest(req);
     const payload: CreateSessionPayload = req.body;
-    setScope(async (scope) => {
-      if (identity) {
-        try {
-          const session = await createSession(
-            identity.user,
-            payload.encryptedCheck
-          );
-          res.status(200).send(session);
-        } catch (err: unknown) {
-          if (err instanceof QueryFailedError) {
-            reportQueryError(scope, err);
-          }
-          res.status(500).send();
-          throw err;
-        }
-      } else {
-        res
-          .status(401)
-          .send('You must be logged in in order to create a session');
+
+    if (identity) {
+      try {
+        const session = await createSession(
+          identity.user,
+          payload.encryptedCheck,
+        );
+        res.status(200).send(session);
+      } catch (err: unknown) {
+        res.status(500).send();
+        throw err;
       }
-    });
+    } else {
+      res
+        .status(401)
+        .send('You must be logged in in order to create a session');
+    }
   });
 
   // Create a demo session
   app.post('/api/demo', heavyLoadLimiter, async (req, res) => {
     const identity = await getIdentityFromRequest(req);
-    setScope(async (scope) => {
-      if (identity) {
-        try {
-          const session = await createDemoSession(identity.user);
-          res.status(200).send(session);
-        } catch (err: unknown) {
-          if (err instanceof QueryFailedError) {
-            reportQueryError(scope, err);
-          }
-          res.status(500).send();
-          throw err;
-        }
-      } else {
-        res
-          .status(401)
-          .send('You must be logged in in order to create a session');
+
+    if (identity) {
+      try {
+        const session = await createDemoSession(identity.user);
+        res.status(200).send(session);
+      } catch (err: unknown) {
+        res.status(500).send();
+        throw err;
       }
-    });
+    } else {
+      res
+        .status(401)
+        .send('You must be logged in in order to create a session');
+    }
   });
 
   app.post('/api/logout', async (req, res, next) => {
@@ -337,7 +316,7 @@ db().then(() => {
     const user = await getUserViewFromRequest(req);
 
     if (user) {
-      const trackingString: string = req.cookies['retro_aw'];
+      const trackingString: string = req.cookies.retro_aw;
       if (trackingString) {
         const tracking: Partial<TrackingInfo> = JSON.parse(trackingString);
         // We don't await this because we don't want to block the response
@@ -373,7 +352,7 @@ db().then(() => {
     if (user) {
       const result = await deleteAccount(
         user,
-        req.body as DeleteAccountPayload
+        req.body as DeleteAccountPayload,
       );
       res.status(200).send(result);
     } else {
@@ -477,7 +456,7 @@ db().then(() => {
         await sendVerificationEmail(
           registerPayload.username,
           registerPayload.name,
-          identity.emailVerification!
+          identity.emailVerification,
         );
         const userView = await getUserView(identity.id);
         if (userView) {
@@ -489,7 +468,7 @@ db().then(() => {
           res.status(500).send();
         }
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // biome-ignore lint/suspicious/noExplicitAny:
         req.logIn(identity.toIds(), async (err: any) => {
           if (err) {
             console.log('Cannot login Error: ', err);
@@ -521,7 +500,7 @@ db().then(() => {
     if (userToDelete) {
       const result = await deleteAccount(
         userToDelete,
-        req.body as DeleteAccountPayload
+        req.body as DeleteAccountPayload,
       );
       res.status(200).send(result);
     } else {
@@ -589,7 +568,7 @@ db().then(() => {
       const updatedUser = await updateIdentity(identity.id, {
         emailVerification: null,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // biome-ignore lint/suspicious/noExplicitAny:
       req.logIn(identity.toIds(), (err: any) => {
         if (err) {
           console.log('Cannot login Error: ', err);
@@ -636,7 +615,7 @@ db().then(() => {
         emailVerification: null,
         password: hashedPassword,
       });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // biome-ignore lint/suspicious/noExplicitAny:
       req.logIn(identity.toIds(), (err: any) => {
         if (err) {
           console.log('Cannot login Error: ', err);
@@ -688,12 +667,10 @@ db().then(() => {
       res.status(500).send('Something went wrong');
     }
   });
-
-  setupSentryErrorHandler(app);
 });
 
 httpServer.listen(port);
 const env = process.env.NODE_ENV || 'dev';
 console.log(
-  chalk`Server started on port {red ${port.toString()}}, environment: {blue ${env}}`
+  chalk`Server started on port {red ${port.toString()}}, environment: {blue ${env}}`,
 );

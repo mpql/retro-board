@@ -1,5 +1,5 @@
-import { PaletteColorOptions, createTheme } from '@mui/material/styles';
 import { colors } from '@mui/material';
+import { type PaletteColorOptions, createTheme } from '@mui/material/styles';
 import config from './utils/getConfig';
 
 const theme = createTheme({
@@ -27,7 +27,7 @@ export default theme;
 
 function convertToColor(
   value: string,
-  defaultColor: PaletteColorOptions
+  defaultColor: PaletteColorOptions,
 ): PaletteColorOptions {
   const parts = value.split(',');
   if (parts.length !== 14) {

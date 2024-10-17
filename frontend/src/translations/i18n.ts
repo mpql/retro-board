@@ -1,9 +1,9 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import i18n, { type CallbackError } from 'i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
 import resourcesToBackend from 'i18next-resources-to-backend';
-import config from 'utils/getConfig';
 import { isProduction } from 'is-production';
+import { initReactI18next } from 'react-i18next';
+import config from 'utils/getConfig';
 
 i18n
   .use(
@@ -13,9 +13,9 @@ i18n
           callback(null, resources);
         })
         .catch((error) => {
-          callback(error, null);
+          callback(error as CallbackError, null);
         });
-    })
+    }),
   )
   .use(LanguageDetector)
   .use(initReactI18next)

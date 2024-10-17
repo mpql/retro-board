@@ -1,11 +1,11 @@
-import useUser from '../../../state/user/useUser';
 import useCanDecrypt from '../../../crypto/useCanDecrypt';
 import useIsDisabled from '../../../hooks/useIsDisabled';
+import useUser from '../../../state/user/useUser';
 import useSession from '../useSession';
 import { useShouldLockSession } from '../useTimer';
 import {
+  type SessionUserPermissions,
   sessionPermissionLogic,
-  SessionUserPermissions,
 } from './permissions-logic';
 
 export default function useSessionUserPermissions(): SessionUserPermissions {
@@ -18,6 +18,6 @@ export default function useSessionUserPermissions(): SessionUserPermissions {
     session,
     user,
     canDecrypt,
-    isDisabled || shouldLockSession
+    isDisabled || shouldLockSession,
   );
 }

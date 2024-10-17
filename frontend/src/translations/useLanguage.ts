@@ -1,15 +1,15 @@
-import { useCallback, useMemo } from 'react';
-import languages, { Language } from './languages';
-import { useTranslation } from 'react-i18next';
 import { updateLanguage } from 'api';
-import { trackEvent } from 'track';
-import { TrackingEvent } from 'common';
-import useUser from 'state/user/useUser';
+import type { TrackingEvent } from 'common';
+import { useCallback, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSetUser } from 'state/user/useSetUser';
+import useUser from 'state/user/useUser';
+import { trackEvent } from 'track';
+import languages, { type Language } from './languages';
 
 type UseLanguageResult = [
   language: Language,
-  changeLanguage: (lng: string) => Promise<void>
+  changeLanguage: (lng: string) => Promise<void>,
 ];
 
 export default function useLanguage(): UseLanguageResult {
@@ -35,7 +35,7 @@ export default function useLanguage(): UseLanguageResult {
         }
       }
     },
-    [hasUser, setUser, i18n]
+    [hasUser, setUser, i18n],
   );
 
   return [language, handleChangeLanguage];

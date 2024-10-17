@@ -1,20 +1,20 @@
-import { ColumnDefinition, ColumnDefinitionType } from 'common';
-import { v4 } from 'uuid';
-import keyBy from 'lodash/keyBy';
-import { ColumnSettings, Template, TranslationFunction } from './types';
-import { getTemplateColumns } from './templates';
+import type { ColumnDefinition, ColumnDefinitionType } from 'common';
 import isEqual from 'lodash/isEqual';
+import keyBy from 'lodash/keyBy';
+import { v4 } from 'uuid';
+import { getTemplateColumns } from './templates';
+import type { ColumnSettings, Template, TranslationFunction } from './types';
 
 export function buildDefaults(
   template: Template,
-  translations: TranslationFunction
+  translations: TranslationFunction,
 ): ColumnSettings[] {
   const base = getTemplateColumns(template, translations);
   return base;
 }
 
 export function toColumnDefinitions(
-  colDef: ColumnSettings[]
+  colDef: ColumnSettings[],
 ): ColumnDefinition[] {
   return colDef.map(
     (def, index) =>
@@ -25,13 +25,13 @@ export function toColumnDefinitions(
         id: v4(),
         index,
         type: def.type,
-      } as ColumnDefinition)
+      }) as ColumnDefinition,
   );
 }
 
 export function extrapolate(
   colDef: ColumnSettings,
-  translations: TranslationFunction
+  translations: TranslationFunction,
 ): ColumnSettings {
   const defaults = getTemplateColumnByType(translations);
   const defaultDef = defaults(colDef.type);
@@ -46,7 +46,7 @@ export function extrapolate(
 export function hasChanged(
   before: ColumnSettings[],
   after: ColumnSettings[],
-  translations: TranslationFunction
+  translations: TranslationFunction,
 ) {
   const extrapolatedBefore = before.map((c) => extrapolate(c, translations));
   const extrapolatedAfter = after.map((c) => extrapolate(c, translations));
@@ -172,7 +172,7 @@ export const getTemplateColumnByType =
           type: 'glad',
         },
       ] as ColumnSettings[],
-      (x) => x.type
+      (x) => x.type,
     );
     return dic[type];
   };

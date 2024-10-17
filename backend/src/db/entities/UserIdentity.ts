@@ -8,10 +8,10 @@ import {
   ManyToOne,
   ManyToMany,
 } from 'typeorm';
-import { Currency, User, UserIdentity } from '../../common/index.js';
+import type { Currency, User, UserIdentity } from '../../common/index.js';
 import type { AccountType } from '../../common/types.js';
 
-import { UserIds } from '../../utils.js';
+import type { UserIds } from '../../utils.js';
 import SessionEntity from './Session.js';
 import SessionTemplateEntity from './SessionTemplate.js';
 import TrackingEntity from './TrackingEntity.js';
@@ -54,9 +54,13 @@ export class UserEntity {
   @ManyToOne(() => SessionTemplateEntity, { nullable: true, eager: false })
   @Index()
   public defaultTemplate: SessionTemplateEntity | null | undefined;
-  @ManyToMany(() => SessionEntity, (session) => session.visitors, {
-    eager: false,
-  })
+  @ManyToMany(
+    () => SessionEntity,
+    (session) => session.visitors,
+    {
+      eager: false,
+    },
+  )
   public sessions: SessionEntity[] | undefined;
   @Column(() => TrackingEntity)
   public tracking: TrackingEntity;

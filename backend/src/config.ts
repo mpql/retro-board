@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { BackendConfig } from './types.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import type { BackendConfig } from './types.js';
 import dotenv from 'dotenv';
 import { getDirname } from './path-utils.js';
 
@@ -29,28 +29,28 @@ function defaults(key: string, defaultValue: string): string {
   if (process.env[key] === undefined) {
     return defaultValue;
   }
-  return process.env[key]!;
+  return process.env[key];
 }
 
 function defaultsBool(key: string, defaultValue: boolean): boolean {
   if (process.env[key] === undefined) {
     return defaultValue;
   }
-  return process.env[key]! === 'true';
+  return process.env[key] === 'true';
 }
 
 function defaultsNumber(key: string, defaultValue: number): number {
   if (process.env[key] === undefined) {
     return defaultValue;
   }
-  return parseInt(process.env[key]!);
+  return Number.parseInt(process.env[key]);
 }
 
 function defaultsUndefined(key: string): string | undefined {
   if (process.env[key] === undefined) {
     return undefined;
   }
-  return process.env[key]!;
+  return process.env[key];
 }
 
 const config: BackendConfig = {
@@ -76,7 +76,7 @@ const config: BackendConfig = {
   DISABLE_PASSWORD_LOGIN: defaultsBool('DISABLE_PASSWORD_LOGIN', false),
   DISABLE_PASSWORD_REGISTRATION: defaultsBool(
     'DISABLE_PASSWORD_REGISTRATION',
-    false
+    false,
   ),
   TWITTER_KEY: defaults('TWITTER_KEY', ''),
   TWITTER_SECRET: defaults('TWITTER_SECRET', ''),
@@ -120,7 +120,7 @@ const config: BackendConfig = {
   MAIL_PASSWORD: defaults('MAIL_PASSWORD', ''),
   MAIL_ALLOW_SELF_SIGNED_CERTS: defaultsBool(
     'MAIL_ALLOW_SELF_SIGNED_CERTS',
-    false
+    false,
   ),
   GA4_SECRET: defaults('GA4_SECRET', ''),
   GA4_MEASUREMENT_ID: defaults('GA4_MEASUREMENT_ID', ''),

@@ -1,7 +1,7 @@
-import fs from 'fs';
+import fs from 'node:fs';
+import { basename, join } from 'node:path';
 import matter from 'gray-matter';
-import { join, basename } from 'path';
-import { groupBy, values, sortBy } from 'lodash-es';
+import { groupBy, sortBy, values } from 'lodash-es';
 
 export type BlogMetadataGroup = {
   slug: string;
@@ -68,7 +68,7 @@ function getBlogMetadata(filePath: string): BlogMetadata {
     ...data,
     file: basename(filePath),
     lang,
-    dropcap: data.dropcap === 'false' ? false : true,
+    dropcap: data.dropcap !== 'false',
   } as BlogMetadata;
   return document;
 }
@@ -124,7 +124,7 @@ export function getAllBlogsForLocale(locale: string): BlogMetadata[] {
   const groups = getAllBlogs();
   const blogsForLocale = sortBy(
     groups.map((group) => findBlogForLocale(group, locale)).filter(Boolean),
-    (g) => g.date
+    (g) => g.date,
   ).reverse();
 
   return blogsForLocale;
@@ -132,7 +132,7 @@ export function getAllBlogsForLocale(locale: string): BlogMetadata[] {
 
 function findBlogForLocale(
   group: BlogMetadataGroup,
-  locale: string
+  locale: string,
 ): BlogMetadata | undefined {
-  return group.lang[locale] || group.lang['en'];
+  return group.lang[locale] || group.lang.en;
 }
